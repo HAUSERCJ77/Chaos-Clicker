@@ -3,48 +3,72 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chaos Clicker</title>
+<title>Ultimate Chaos Clicker</title>
 <style>
-  body {
-    margin: 0;
-    background: #111;
-    color: #0f0;
-    font-family: 'Courier New', monospace;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    overflow: hidden;
-    transition: background 0.1s;
-  }
-  h1 { font-size: 2em; }
-  button {
-    padding: 20px 40px;
-    margin: 10px;
-    font-size: 24px;
-    cursor: pointer;
-    background: #222;
-    border: 2px solid #0f0;
-    color: #0f0;
-    transition: transform 0.1s, background 0.1s;
-  }
-  .upgrade { margin-top: 20px; }
-  .emoji {
-    position: absolute;
-    font-size: 24px;
-    pointer-events: none;
-    animation: floatUp 1s linear forwards;
-  }
-  @keyframes floatUp {
-    0% { transform: translateY(0) rotate(0deg); opacity:1;}
-    100% { transform: translateY(-150px) rotate(360deg); opacity:0;}
-  }
+body {
+  margin: 0;
+  background: #111;
+  color: #0f0;
+  font-family: 'Courier New', monospace;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  overflow: hidden;
+  transition: background 0.1s;
+}
+h1 { font-size: 2em; }
+button {
+  padding: 20px 40px;
+  margin: 10px;
+  font-size: 24px;
+  cursor: pointer;
+  background: #222;
+  border: 2px solid #0f0;
+  color: #0f0;
+  transition: transform 0.1s, background 0.1s;
+}
+.upgrade { margin-top: 20px; }
+.emoji {
+  position: absolute;
+  font-size: 24px;
+  pointer-events: none;
+  animation: floatUp 1s linear forwards;
+}
+@keyframes floatUp {
+  0% { transform: translateY(0) rotate(0deg); opacity:1;}
+  100% { transform: translateY(-150px) rotate(360deg); opacity:0;}
+}
+.particle {
+  position: absolute;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: fly 0.5s linear forwards;
+}
+@keyframes fly {
+  0% { transform: translate(0,0); opacity:1; }
+  100% { transform: translate(var(--x), var(--y)); opacity:0; }
+}
+.megaClickBtn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  font-size: 32px;
+  padding: 30px 60px;
+  background: #ff0;
+  color: #000;
+  border: 3px solid #fff;
+  display: none;
+  z-index: 9999;
+}
 </style>
 </head>
 <body>
 
 <h1>Points: <span id="points">0</span></h1>
+<div id="chaosMeter" style="width:300px;height:20px;background:#222;margin:10px;border:2px solid #0f0;"><div id="chaosFill" style="width:0%;height:100%;background:#0f0;"></div></div>
 <button id="clickBtn">CLICK!</button>
 
 <div class="upgrade">
@@ -53,93 +77,195 @@
   <button id="chaosBtn">Activate Chaos Mode (500)</button>
 </div>
 
+<button id="megaClickBtn" class="megaClickBtn">MEGA CLICK!</button>
+
+<audio id="clickSound" src="https://www.soundjay.com/button/sounds/button-16.mp3"></audio>
+
 <script>
 let points = 0;
 let clickPower = 1;
 let autoClickers = 0;
 let chaos = false;
+let comboCount = 0;
+let lastClick = 0;
+let chaosMeter = 0;
+let gravityShift = false;
 
 const pointsDisplay = document.getElementById('points');
 const clickBtn = document.getElementById('clickBtn');
 const autoClickBtn = document.getElementById('autoClickBtn');
 const multiplierBtn = document.getElementById('multiplierBtn');
 const chaosBtn = document.getElementById('chaosBtn');
+const clickSound = document.getElementById('clickSound');
+const chaosFill = document.getElementById('chaosFill');
+const megaClickBtn = document.getElementById('megaClickBtn');
 
-function randomColor() {
-  return `hsl(${Math.floor(Math.random()*360)}, 100%, 50%)`;
-}
+function randomColor() { return `hsl(${Math.floor(Math.random()*360)},100%,50%)`; }
+function randomOffset() { return (Math.random()-0.5)*200 + 'px'; }
+function randomInt(max) { return Math.floor(Math.random()*max); }
 
 function spawnEmoji() {
   const emoji = document.createElement('div');
   emoji.className = 'emoji';
-  emoji.textContent = ['💥','⚡','🔥','💀','👽','🎵','🌀','✨'][Math.floor(Math.random()*8)];
-  emoji.style.left = Math.random()*window.innerWidth+'px';
-  emoji.style.top = Math.random()*window.innerHeight+'px';
+  emoji.textContent = ['💥','⚡','🔥','💀','👽','🎵','🌀','✨'][randomInt(8)];
+  emoji.style.left = randomInt(window.innerWidth)+'px';
+  emoji.style.top = randomInt(window.innerHeight)+'px';
   emoji.style.color = randomColor();
   document.body.appendChild(emoji);
   setTimeout(()=>emoji.remove(), 1000);
 }
 
-// Screen shake
-function shakeScreen() {
-  const x = (Math.random()-0.5)*20;
-  const y = (Math.random()-0.5)*20;
+function spawnParticles(x, y, count=10) {
+  for(let i=0;i<count;i++){
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.background = randomColor();
+    p.style.left = x+'px';
+    p.style.top = y+'px';
+    let offsetX = randomOffset();
+    let offsetY = randomOffset();
+    if(gravityShift) offsetY = -offsetY;
+    p.style.setProperty('--x', offsetX);
+    p.style.setProperty('--y', offsetY);
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),500);
+  }
+}
+
+function shakeScreen(intensity=20) {
+  const x = (Math.random()-0.5)*intensity;
+  const y = (Math.random()-0.5)*intensity;
   document.body.style.transform = `translate(${x}px, ${y}px)`;
   setTimeout(()=>document.body.style.transform='translate(0,0)', 100);
 }
 
-// Click
-clickBtn.onclick = () => {
-  points += clickPower;
+// Random events
+function randomEvent() {
+  const r = Math.random();
+  if(r<0.1){ // Freeze screen
+    document.body.style.transition='none';
+    setTimeout(()=>document.body.style.transition='background 0.1s',500);
+  } else if(r<0.2){ // Random multiplier
+    clickPower *= 2;
+    setTimeout(()=>clickPower/=2,5000);
+  } else if(r<0.35){ // Gravity shift
+    gravityShift = true;
+    setTimeout(()=>gravityShift=false,5000);
+  } else if(r<0.5){ // Cursed mode
+    document.body.style.filter='invert(1)';
+    setTimeout(()=>document.body.style.filter='invert(0)',5000);
+  }
+}
+
+function updateChaosMeter(amount) {
+  chaosMeter += amount;
+  if(chaosMeter>100) chaosMeter=100;
+  chaosFill.style.width = chaosMeter+'%';
+  if(chaosMeter>=100){
+    // Apocalypse mode
+    for(let i=0;i<20;i++) spawnParticles(randomInt(window.innerWidth),randomInt(window.innerHeight),20);
+    chaosMeter=0;
+    chaosFill.style.width='0%';
+  }
+}
+
+function showMegaClick() {
+  if(points>=1000) megaClickBtn.style.display='block';
+}
+
+clickBtn.onclick = (e) => {
+  const now = Date.now();
+  if(now - lastClick<300){ // combo
+    comboCount++;
+    points += clickPower*comboCount;
+  } else {
+    comboCount=1;
+    points += clickPower;
+  }
+  lastClick = now;
+
   pointsDisplay.textContent = points;
   clickBtn.style.transform = `scale(${1 + Math.random()*0.3})`;
   clickBtn.style.background = randomColor();
   spawnEmoji();
+  spawnParticles(e.clientX, e.clientY);
   shakeScreen();
+  clickSound.currentTime = 0; clickSound.play();
   if(chaos) document.body.style.background = randomColor();
-  setTimeout(() => {
-    clickBtn.style.transform = 'scale(1)';
-    clickBtn.style.background = '#222';
-  }, 100);
+  updateChaosMeter(1);
+  showMegaClick();
+  randomEvent();
+
+  setTimeout(() => { clickBtn.style.transform='scale(1)'; clickBtn.style.background='#222'; },100);
 };
 
-// Auto clicker
-autoClickBtn.onclick = () => {
-  if(points >= 50) {
-    points -= 50;
-    autoClickers += 1;
-    pointsDisplay.textContent = points;
-    autoClickBtn.textContent = `Buy Auto Clicker (50) - Owned: ${autoClickers}`;
+megaClickBtn.onclick = () => {
+  points += 500 + clickPower*50;
+  for(let i=0;i<100;i++){
+    spawnEmoji();
+    spawnParticles(randomInt(window.innerWidth),randomInt(window.innerHeight),20);
   }
-};
-
-// Multiplier
-multiplierBtn.onclick = () => {
-  if(points >= 100) {
-    points -= 100;
-    clickPower *= 2;
-    pointsDisplay.textContent = points;
-    multiplierBtn.textContent = `Double Click Power (100) - Power: ${clickPower}`;
-  }
-};
-
-// Chaos mode
-chaosBtn.onclick = () => {
-  if(points >= 500) {
-    points -= 500;
-    chaos = true;
-    chaosBtn.textContent = 'Chaos Mode ACTIVE!';
-    chaosBtn.disabled = true;
-  }
-};
-
-// Auto clicker interval
-setInterval(() => {
-  points += autoClickers;
+  shakeScreen(50);
+  megaClickBtn.style.display='none';
   pointsDisplay.textContent = points;
-  for(let i=0; i<autoClickers; i++) spawnEmoji();
-  if(chaos) document.body.style.background = randomColor();
-}, 1000);
+}
+
+autoClickBtn.onclick = () => {
+  if(points >= 50) { points-=50; autoClickers+=1; pointsDisplay.textContent=points; autoClickBtn.textContent=`Buy Auto Clicker (50) - Owned: ${autoClickers}`; }
+};
+
+multiplierBtn.onclick = () => {
+  if(points>=100){ points-=100; clickPower*=2; pointsDisplay.textContent=points; multiplierBtn.textContent=`Double Click Power (100) - Power: ${clickPower}`; }
+};
+
+chaosBtn.onclick = () => {
+  if(points>=500){ points-=500; chaos=true; chaosBtn.textContent='Chaos Mode ACTIVE!'; chaosBtn.disabled=true; }
+};
+
+// Auto clickers
+setInterval(()=>{
+  points+=autoClickers;
+  pointsDisplay.textContent=points;
+  for(let i=0;i<autoClickers;i++){
+    spawnEmoji();
+    spawnParticles(randomInt(window.innerWidth),randomInt(window.innerHeight),5);
+  }
+  if(chaos) document.body.style.background=randomColor();
+  randomEvent();
+},1000);
+
+// Emoji Boss
+setInterval(()=>{
+  if(Math.random()<0.05){
+    const boss = document.createElement('div');
+    boss.textContent = '👹';
+    boss.style.fontSize='64px';
+    boss.style.position='absolute';
+    boss.style.left=randomInt(window.innerWidth-100)+'px';
+    boss.style.top=randomInt(window.innerHeight-100)+'px';
+    boss.style.cursor='pointer';
+    document.body.appendChild(boss);
+    boss.onclick = () => {
+      points += 500;
+      pointsDisplay.textContent = points;
+      spawnParticles(parseInt(boss.style.left), parseInt(boss.style.top),50);
+      boss.remove();
+    }
+    setTimeout(()=>boss.remove(),10000);
+  }
+},5000);
+
+// Leaderboard using localStorage
+function saveScore(){
+  let scores = JSON.parse(localStorage.getItem('chaosLeaderboard')||'[]');
+  scores.push(points);
+  scores.sort((a,b)=>b-a);
+  scores = scores.slice(0,5);
+  localStorage.setItem('chaosLeaderboard', JSON.stringify(scores));
+  console.log('Leaderboard:', scores);
+}
+window.addEventListener('beforeunload', saveScore);
+
 </script>
 
 </body>
