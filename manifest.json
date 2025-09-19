@@ -1,0 +1,21 @@
+{
+  "name": "Ultimate Chaos Clicker",
+  "short_name": "ChaosClicker",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#111",
+  "theme_color": "#0f0",
+  "description": "Fully offline chaos clicker game with particles, emojis, and mega chaos!",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
