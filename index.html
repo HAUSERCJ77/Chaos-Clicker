@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sigma Clicker</title>
+<style>
+  body {
+    background: #111;
+    color: #0f0;
+    font-family: 'Courier New', monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+  }
+  button {
+    padding: 20px 40px;
+    margin: 10px;
+    font-size: 24px;
+    cursor: pointer;
+    background: #222;
+    border: 2px solid #0f0;
+    color: #0f0;
+    transition: transform 0.1s;
+  }
+  button:hover {
+    transform: scale(1.1);
+  }
+  .upgrade {
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Sigma Energy: <span id="points">0</span></h1>
+<button id="clickBtn">⚡ Click Me ⚡</button>
+
+<div class="upgrade">
+  <button id="autoClickBtn">Buy Auto Clicker (50 points)</button>
+  <button id="multiplierBtn">Double Click Power (100 points)</button>
+</div>
+
+<script>
+let points = 0;
+let clickPower = 1;
+let autoClickers = 0;
+
+const pointsDisplay = document.getElementById('points');
+const clickBtn = document.getElementById('clickBtn');
+const autoClickBtn = document.getElementById('autoClickBtn');
+const multiplierBtn = document.getElementById('multiplierBtn');
+
+// Click function
+clickBtn.onclick = () => {
+  points += clickPower;
+  pointsDisplay.textContent = points;
+  clickBtn.style.transform = 'scale(1.2)';
+  setTimeout(() => clickBtn.style.transform = 'scale(1)', 100);
+};
+
+// Buy auto clicker
+autoClickBtn.onclick = () => {
+  if(points >= 50) {
+    points -= 50;
+    autoClickers += 1;
+    pointsDisplay.textContent = points;
+    autoClickBtn.textContent = `Buy Auto Clicker (50 points) - Owned: ${autoClickers}`;
+  }
+};
+
+// Buy multiplier
+multiplierBtn.onclick = () => {
+  if(points >= 100) {
+    points -= 100;
+    clickPower *= 2;
+    pointsDisplay.textContent = points;
+    multiplierBtn.textContent = `Double Click Power (100 points) - Current Power: ${clickPower}`;
+  }
+};
+
+// Auto clicker interval
+setInterval(() => {
+  points += autoClickers;
+  pointsDisplay.textContent = points;
+}, 1000);
+</script>
+
+</body>
+</html>
