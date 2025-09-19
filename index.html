@@ -4,7 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ultimate Chaos Clicker</title>
+
+<!-- PWA meta -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#111">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+
 <style>
+/* your previous CSS here */
 body {
   margin: 0;
   background: #111;
@@ -79,7 +87,7 @@ button {
 
 <button id="megaClickBtn" class="megaClickBtn">MEGA CLICK!</button>
 
-<audio id="clickSound" src="https://www.soundjay.com/button/sounds/button-16.mp3"></audio>
+<audio id="clickSound" src="click.mp3"></audio>
 
 <script>
 let points = 0;
@@ -265,8 +273,12 @@ function saveScore(){
   console.log('Leaderboard:', scores);
 }
 window.addEventListener('beforeunload', saveScore);
-
+// Service worker registration:
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js')
+  .then(()=>console.log('Service Worker Registered'))
+  .catch(err=>console.log('SW registration failed:', err));
+}
 </script>
-
 </body>
 </html>
