@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sigma Clicker</title>
+<title>Chaos Clicker</title>
 <style>
   body {
+    margin: 0;
     background: #111;
     color: #0f0;
     font-family: 'Courier New', monospace;
@@ -14,7 +15,10 @@
     align-items: center;
     justify-content: center;
     height: 100vh;
+    overflow: hidden;
+    transition: background 0.1s;
   }
+  h1 { font-size: 2em; }
   button {
     padding: 20px 40px;
     margin: 10px;
@@ -23,61 +27,109 @@
     background: #222;
     border: 2px solid #0f0;
     color: #0f0;
-    transition: transform 0.1s;
+    transition: transform 0.1s, background 0.1s;
   }
-  button:hover {
-    transform: scale(1.1);
+  .upgrade { margin-top: 20px; }
+  .emoji {
+    position: absolute;
+    font-size: 24px;
+    pointer-events: none;
+    animation: floatUp 1s linear forwards;
   }
-  .upgrade {
-    margin-top: 20px;
+  @keyframes floatUp {
+    0% { transform: translateY(0) rotate(0deg); opacity:1;}
+    100% { transform: translateY(-150px) rotate(360deg); opacity:0;}
   }
 </style>
 </head>
 <body>
 
-<h1>Sigma Energy: <span id="points">0</span></h1>
-<button id="clickBtn">⚡ Click Me ⚡</button>
+<h1>Points: <span id="points">0</span></h1>
+<button id="clickBtn">CLICK!</button>
 
 <div class="upgrade">
-  <button id="autoClickBtn">Buy Auto Clicker (50 points)</button>
-  <button id="multiplierBtn">Double Click Power (100 points)</button>
+  <button id="autoClickBtn">Buy Auto Clicker (50)</button>
+  <button id="multiplierBtn">Double Click Power (100)</button>
+  <button id="chaosBtn">Activate Chaos Mode (500)</button>
 </div>
 
 <script>
 let points = 0;
 let clickPower = 1;
 let autoClickers = 0;
+let chaos = false;
 
 const pointsDisplay = document.getElementById('points');
 const clickBtn = document.getElementById('clickBtn');
 const autoClickBtn = document.getElementById('autoClickBtn');
 const multiplierBtn = document.getElementById('multiplierBtn');
+const chaosBtn = document.getElementById('chaosBtn');
 
-// Click function
+function randomColor() {
+  return `hsl(${Math.floor(Math.random()*360)}, 100%, 50%)`;
+}
+
+function spawnEmoji() {
+  const emoji = document.createElement('div');
+  emoji.className = 'emoji';
+  emoji.textContent = ['💥','⚡','🔥','💀','👽','🎵','🌀','✨'][Math.floor(Math.random()*8)];
+  emoji.style.left = Math.random()*window.innerWidth+'px';
+  emoji.style.top = Math.random()*window.innerHeight+'px';
+  emoji.style.color = randomColor();
+  document.body.appendChild(emoji);
+  setTimeout(()=>emoji.remove(), 1000);
+}
+
+// Screen shake
+function shakeScreen() {
+  const x = (Math.random()-0.5)*20;
+  const y = (Math.random()-0.5)*20;
+  document.body.style.transform = `translate(${x}px, ${y}px)`;
+  setTimeout(()=>document.body.style.transform='translate(0,0)', 100);
+}
+
+// Click
 clickBtn.onclick = () => {
   points += clickPower;
   pointsDisplay.textContent = points;
-  clickBtn.style.transform = 'scale(1.2)';
-  setTimeout(() => clickBtn.style.transform = 'scale(1)', 100);
+  clickBtn.style.transform = `scale(${1 + Math.random()*0.3})`;
+  clickBtn.style.background = randomColor();
+  spawnEmoji();
+  shakeScreen();
+  if(chaos) document.body.style.background = randomColor();
+  setTimeout(() => {
+    clickBtn.style.transform = 'scale(1)';
+    clickBtn.style.background = '#222';
+  }, 100);
 };
 
-// Buy auto clicker
+// Auto clicker
 autoClickBtn.onclick = () => {
   if(points >= 50) {
     points -= 50;
     autoClickers += 1;
     pointsDisplay.textContent = points;
-    autoClickBtn.textContent = `Buy Auto Clicker (50 points) - Owned: ${autoClickers}`;
+    autoClickBtn.textContent = `Buy Auto Clicker (50) - Owned: ${autoClickers}`;
   }
 };
 
-// Buy multiplier
+// Multiplier
 multiplierBtn.onclick = () => {
   if(points >= 100) {
     points -= 100;
     clickPower *= 2;
     pointsDisplay.textContent = points;
-    multiplierBtn.textContent = `Double Click Power (100 points) - Current Power: ${clickPower}`;
+    multiplierBtn.textContent = `Double Click Power (100) - Power: ${clickPower}`;
+  }
+};
+
+// Chaos mode
+chaosBtn.onclick = () => {
+  if(points >= 500) {
+    points -= 500;
+    chaos = true;
+    chaosBtn.textContent = 'Chaos Mode ACTIVE!';
+    chaosBtn.disabled = true;
   }
 };
 
@@ -85,6 +137,8 @@ multiplierBtn.onclick = () => {
 setInterval(() => {
   points += autoClickers;
   pointsDisplay.textContent = points;
+  for(let i=0; i<autoClickers; i++) spawnEmoji();
+  if(chaos) document.body.style.background = randomColor();
 }, 1000);
 </script>
 
