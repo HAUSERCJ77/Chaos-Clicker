@@ -1,98 +1,39 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ultra Chaos Clicker</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0f0">
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js')
-      .then(() => console.log('Service Worker Registered'))
-      .catch(err => console.log('Service Worker Failed:', err));
-  }
-</script>
-<script src="chaos.js"></script>
-<style>
-  body {
-    margin: 0;
-    background: #111;
-    color: #0f0;
-    font-family: 'Courier New', monospace;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    height: 100vh;
-    overflow-x: hidden;
-  }
-  h1 { margin: 20px; font-size: 2em; }
-  button {
-    padding: 12px 20px;
-    margin: 6px 0;
-    font-size: 16px;
-    cursor: pointer;
-    background: #222;
-    border: 2px solid #0f0;
-    color: #0f0;
-    transition: transform 0.1s, background 0.1s;
-    width: 100%;
-    text-align: left;
-  }
-  #shop { margin-top: 20px; width: 95%; max-width: 500px; }
-  #achievements { margin-top: 20px; width: 95%; max-width: 500px; }
-  .emoji {
-    position: absolute;
-    font-size: 24px;
-    pointer-events: none;
-    animation: floatUp 1s linear forwards;
-  }
-  @keyframes floatUp {
-    0% { transform: translateY(0) rotate(0deg); opacity:1;}
-    100% { transform: translateY(-150px) rotate(360deg); opacity:0;}
-  }
-  .particle {
-    position: absolute;
-    width: 5px; height: 5px;
-    border-radius: 50%;
-    pointer-events: none;
-    animation: fly 0.5s linear forwards;
-  }
-  @keyframes fly {
-    0% { transform: translate(0,0); opacity:1; }
-    100% { transform: translate(var(--x), var(--y)); opacity:0; }
-  }
-</style>
-</head>
-<body>
+/* Ultra Chaos Clicker Main Script (chaos.js) */
 
-<h1>Points: <span id="points">0</span></h1>
-<button id="clickBtn">CLICK!</button>
-<button id="megaClickBtn" style="display:none;">MEGA CLICK 💥</button>
-
-<div id="shop"></div>
-<div id="achievements"><h2>Achievements</h2></div>
-
-<script>
-/* =================== VARIABLES =================== */
+// =================== VARIABLES ===================
 let points = 0, clickPower = 1, autoClickers = 0, prestigePoints = 0;
 let combo = 0, lastClick = 0;
 let emojiSet = ['💥','⚡','🔥','👾','✨','💎','🐉','🛸'];
+let achievements = [];
+let unlockedAchievements = [];
+let clickSound;
 
-/* =================== DOM ELEMENTS =================== */
+// =================== DOM ELEMENTS ===================
 const pointsDisplay = document.getElementById('points');
 const clickBtn = document.getElementById('clickBtn');
 const megaClickBtn = document.getElementById('megaClickBtn');
 const shopDiv = document.getElementById('shop');
 const achievementsDiv = document.getElementById('achievements');
 
-/* =================== HELPERS =================== */
+// =================== HELPERS ===================
 function randomColor(){ return `hsl(${Math.floor(Math.random()*360)},100%,50%)`; }
 function randOffset(){ return (Math.random()-0.5)*200+'px'; }
 function randomInt(max){ return Math.floor(Math.random()*max); }
 
-/* =================== SPAWN FUNCTIONS =================== */
+// =================== SOUND ===================
+function playClickSound(){
+  if (clickSound) {
+    clickSound.currentTime = 0;
+    clickSound.play();
+  }
+}
+function loadClickSound(){
+  clickSound = new Audio('click.mp3');
+  clickSound.load();
+}
+loadClickSound();
+
+// =================== SPAWN FUNCTIONS ===================
 function spawnEmoji(){ 
   const e = document.createElement('div');
   e.className = 'emoji';
@@ -125,7 +66,7 @@ function shakeScreen(mag=10){
   setTimeout(()=>document.body.style.transform='translate(0,0)',100);
 }
 
-/* =================== RANDOM EVENTS =================== */
+// =================== RANDOM EVENTS ===================
 function randomEvent(){
   const r=Math.random();
   if(r<0.1){shakeScreen(50);}
@@ -135,7 +76,54 @@ function randomEvent(){
   else if(r<0.5){spawnEmoji();}
 }
 
-/* =================== SHOP ITEMS =================== */
+// =================== ACHIEVEMENTS ===================
+achievements = [
+  {id:'firstClick', name:'First Click!', desc:'Click for the first time.', test:()=>points>=1},
+  {id:'hundredPoints', name:'100 Points!', desc:'Reach 100 points.', test:()=>points>=100},
+  {id:'shopBuy', name:'Shopper', desc:'Buy any shop item.', test:()=>shopItems.some(i=>i.amount>0)},
+  {id:'prestige', name:'Prestige!', desc:'Prestige at least once.', test:()=>prestigePoints>0},
+  {id:'autoClicker', name:'Automation!', desc:'Own 10 auto clickers.', test:()=>shopItems[0].amount>=10},
+  {id:'megaClick', name:'Mega Click!', desc:'Unlock Mega Click.', test:()=>megaClickBtn.style.display!=='none'},
+  {id:'chaos', name:'Chaos!', desc:'Trigger a random event.', test:()=>points>=1 && Math.random()<0.01},
+];
+function checkAchievements(){
+  achievements.forEach(a=>{
+    if(!unlockedAchievements.includes(a.id) && a.test()){
+      unlockedAchievements.push(a.id);
+      showAchievement(a);
+      saveGame();
+    }
+  });
+  renderAchievements();
+}
+function showAchievement(a){
+  const div = document.createElement('div');
+  div.textContent = `🏆 ${a.name}: ${a.desc}`;
+  div.style.background = '#222';
+  div.style.color = '#0f0';
+  div.style.padding = '8px';
+  div.style.margin = '4px';
+  div.style.border = '2px solid #0f0';
+  div.style.position = 'fixed';
+  div.style.top = '10px';
+  div.style.right = '10px';
+  div.style.zIndex = 9999;
+  document.body.appendChild(div);
+  setTimeout(()=>div.remove(),3000);
+}
+function renderAchievements(){
+  achievementsDiv.innerHTML = '<h2>Achievements</h2>';
+  unlockedAchievements.forEach(id=>{
+    const a = achievements.find(x=>x.id===id);
+    if(a){
+      const div = document.createElement('div');
+      div.textContent = `🏆 ${a.name}`;
+      achievementsDiv.appendChild(div);
+    }
+  });
+}
+
+// =================== SHOP ITEMS ===================
 let shopItems = [
   {name:"Auto Clicker", basePrice:50, amount:0, mult:1.15, effect:()=>autoClickers++},
   {name:"+1 Click Power", basePrice:100, amount:0, mult:1.2, effect:()=>clickPower++},
@@ -174,7 +162,7 @@ let shopItems = [
   {name:"Ultimate Chaos", basePrice:20000, amount:0, mult:5, effect:()=>alert("You have unlocked Ultimate Chaos!")}
 ];
 
-/* =================== RENDER SHOP =================== */
+// =================== RENDER SHOP ===================
 function renderShop(){
   shopDiv.innerHTML='<h2>Shop</h2>';
   shopItems.forEach(item=>{
@@ -185,13 +173,16 @@ function renderShop(){
       if(points>=cost){
         points -= cost; pointsDisplay.textContent=points;
         item.amount++; item.effect(); renderShop();
+        checkAchievements();
+        saveGame();
       }
     };
+    btn.setAttribute('aria-label', item.name + ' costs ' + cost);
     shopDiv.appendChild(btn);
   });
 }
 
-/* =================== PRESTIGE =================== */
+// =================== PRESTIGE ===================
 function prestige(){
   prestigePoints++;
   points=0; clickPower=1; autoClickers=0;
@@ -199,10 +190,12 @@ function prestige(){
   alert(`Prestige! Permanent +1 click power. Total prestige: ${prestigePoints}`);
   clickPower += prestigePoints;
   renderShop();
+  checkAchievements();
+  saveGame();
 }
 
-/* =================== CLICK HANDLER =================== */
-clickBtn.onclick=(e)=>{
+// =================== CLICK HANDLER ===================
+function handleClick(e){
   const now = Date.now();
   combo = (now-lastClick<300)?combo+1:1;
   lastClick = now;
@@ -211,6 +204,7 @@ clickBtn.onclick=(e)=>{
   spawnEmoji();
   spawnParticles(e.clientX,e.clientY,5+combo);
   shakeScreen(combo*2);
+  playClickSound();
   shopItems.forEach(item=>{
     if(item.amount>0){
       if(item.name==="Critical Clicks") item.effect();
@@ -224,20 +218,90 @@ clickBtn.onclick=(e)=>{
       if(item.name==="Apocalypse Mode") item.effect();
     }
   });
+  checkAchievements();
+  saveGame();
 }
+clickBtn.onclick=handleClick;
+clickBtn.setAttribute('aria-label', 'Click to earn points');
+clickBtn.setAttribute('tabindex', '0');
+clickBtn.onkeydown = function(e){ if(e.key==='Enter'||e.key===' '){ handleClick(e); } };
 
-/* =================== MEGA CLICK =================== */
-megaClickBtn.onclick=()=>{
+// Touch support
+clickBtn.ontouchstart = function(e){ handleClick(e.touches[0]); };
+
+// =================== MEGA CLICK ===================
+function handleMegaClick(){
   points += clickPower*50;
   pointsDisplay.textContent=points;
   spawnParticles(window.innerWidth/2,window.innerHeight/2,100);
   shakeScreen(40);
+  playClickSound();
+  checkAchievements();
+  saveGame();
 }
+megaClickBtn.onclick=handleMegaClick;
+megaClickBtn.setAttribute('aria-label', 'Mega Click for bonus points');
+megaClickBtn.setAttribute('tabindex', '0');
+megaClickBtn.onkeydown = function(e){ if(e.key==='Enter'||e.key===' '){ handleMegaClick(); } };
+megaClickBtn.ontouchstart = function(e){ handleMegaClick(); };
 
-/* =================== AUTOCLICKER LOOP =================== */
+// =================== AUTOCLICKER LOOP ===================
 setInterval(()=>{
   points += autoClickers;
+  pointsDisplay.textContent=points;
+  for(let i=0;i<autoClickers;i++){
+    spawnEmoji();
+    shopItems.forEach(item=>{
+      if(item.amount>0 && item.name==="Auto Chaos") item.effect();
+      if(item.amount>0 && item.name==="Emoji Boss") item.effect();
+    });
+  }
+  checkAchievements();
+  saveGame();
+},1000);
 
-<!-- JS extracted to chaos.js -->
-</body>
-</html>
+// =================== LOCAL STORAGE ===================
+function saveGame(){
+  const state = {
+    points, clickPower, autoClickers, prestigePoints,
+    combo, lastClick,
+    shopItems: shopItems.map(i=>i.amount),
+    unlockedAchievements
+  };
+  localStorage.setItem('chaosClickerSave', JSON.stringify(state));
+}
+function loadGame(){
+  const state = JSON.parse(localStorage.getItem('chaosClickerSave')||'null');
+  if(state){
+    points = state.points;
+    clickPower = state.clickPower;
+    autoClickers = state.autoClickers;
+    prestigePoints = state.prestigePoints;
+    combo = state.combo;
+    lastClick = state.lastClick;
+    if(state.shopItems){
+      shopItems.forEach((i,idx)=>{ i.amount = state.shopItems[idx]||0; });
+    }
+    unlockedAchievements = state.unlockedAchievements||[];
+    pointsDisplay.textContent=points;
+    if(shopItems[3].amount>0) megaClickBtn.style.display='inline-block';
+    renderShop();
+    renderAchievements();
+  }
+}
+
+// =================== INIT ===================
+window.onload = function(){
+  loadGame();
+  renderShop();
+  renderAchievements();
+};
+
+// =================== SERVICE WORKER CACHE ===================
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.ready.then(reg => {
+    if (reg.active) {
+      reg.active.postMessage({cacheFile: 'click.mp3'});
+    }
+  });
+}
