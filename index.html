@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0f0">
 <script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js')
+    navigator.serviceWorker.register('sw.js')
       .then(() => console.log('Service Worker Registered'))
       .catch(err => console.log('Service Worker Failed:', err));
   }
