@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chaos Clicker RPG</title>
+<title>Ultra Chaos Clicker</title>
 <style>
   body {
     margin: 0;
@@ -79,16 +79,18 @@ const shopDiv=document.getElementById('shop');
 // Helpers
 function randomColor(){return `hsl(${Math.floor(Math.random()*360)},100%,50%)`;}
 function randOffset(){return (Math.random()-0.5)*200+'px';}
+function randomInt(max){return Math.floor(Math.random()*max);}
 
 // Emojis
 let emojiSet=['💥','⚡','🔥','👾','✨'];
 
+// Spawn functions
 function spawnEmoji(){
   const emoji=document.createElement('div');
   emoji.className='emoji';
-  emoji.textContent=emojiSet[Math.floor(Math.random()*emojiSet.length)];
-  emoji.style.left=Math.random()*window.innerWidth+'px';
-  emoji.style.top=Math.random()*window.innerHeight+'px';
+  emoji.textContent=emojiSet[randomInt(emojiSet.length)];
+  emoji.style.left=randomInt(window.innerWidth)+'px';
+  emoji.style.top=randomInt(window.innerHeight)+'px';
   emoji.style.color=randomColor();
   document.body.appendChild(emoji);
   setTimeout(()=>emoji.remove(),1000);
@@ -115,33 +117,75 @@ function shakeScreen(mag=10){
   setTimeout(()=>document.body.style.transform='translate(0,0)',100);
 }
 
+// Random Event
+function randomEvent(){
+  const r=Math.random();
+  if(r<0.1){shakeScreen(50);}
+  else if(r<0.2){clickPower*=2; setTimeout(()=>clickPower/=2,5000);}
+  else if(r<0.3){document.body.style.filter='invert(1)'; setTimeout(()=>document.body.style.filter='invert(0)',5000);}
+  else if(r<0.4){spawnParticles(randomInt(window.innerWidth),randomInt(window.innerHeight),30);}
+  else if(r<0.5){spawnEmoji();}
+}
+
+// Upgrade effects
+function comboBoost(){ /* combo handled in click */ }
+function emojiStorm(){ for(let i=0;i<3;i++) spawnEmoji(); }
+function particleFrenzy(){ spawnParticles(randomInt(window.innerWidth),randomInt(window.innerHeight),15); }
+function criticalClicks(){ if(Math.random()<0.1){ points+=clickPower*5; pointsDisplay.textContent=points; } }
+function screenShaker(){ shakeScreen(30); }
+function chaosEnergy(){ document.body.style.background=randomColor(); setTimeout(()=>document.body.style.background='#111',300); }
+function emojiBossSpawn(){ 
+  const boss=document.createElement('div');
+  boss.textContent='👹';
+  boss.style.position='absolute';
+  boss.style.fontSize='64px';
+  boss.style.left=randomInt(window.innerWidth-100)+'px';
+  boss.style.top=randomInt(window.innerHeight-100)+'px';
+  boss.style.cursor='pointer';
+  document.body.appendChild(boss);
+  boss.onclick=()=>{
+    points+=500; pointsDisplay.textContent=points;
+    spawnParticles(parseInt(boss.style.left),parseInt(boss.style.top),50);
+    boss.remove();
+  };
+  setTimeout(()=>boss.remove(),15000);
+}
+function autoChaos(){ if(Math.random()<0.2) randomEvent(); }
+function superParticleBlast(){ spawnParticles(randomInt(window.innerWidth),randomInt(window.innerHeight),50); }
+function clickMagnet(x,y){ document.querySelectorAll('.particle,.emoji').forEach(el=>{
+  el.style.left=x+'px'; el.style.top=y+'px';
+}); }
+function rngMadness(){ if(Math.random()<0.1){ points+=randomInt(50)+10; pointsDisplay.textContent=points; } }
+function apocalypseMode(){ combo*=2; setTimeout(()=>combo=1,15000); }
+
 // Shop items
 let shopItems=[
   {name:"Auto Clicker", basePrice:50, amount:0, mult:1.15, effect:()=>autoClickers++},
   {name:"+1 Click Power", basePrice:100, amount:0, mult:1.2, effect:()=>clickPower++},
   {name:"Double Power", basePrice:250, amount:0, mult:1.25, effect:()=>clickPower*=2},
   {name:"Unlock Mega Click", basePrice:500, amount:0, mult:2, effect:()=>megaClickBtn.style.display='inline-block'},
-  {name:"Combo Booster", basePrice:600, amount:0, mult:1.3, effect:()=>{}},
-  {name:"Emoji Storm", basePrice:800, amount:0, mult:1.3, effect:()=>emojiSet.push('💣','🌀','🎇')},
-  {name:"Particle Frenzy", basePrice:1000, amount:0, mult:1.35, effect:()=>{}},
-  {name:"Critical Clicks", basePrice:1200, amount:0, mult:1.4, effect:()=>{}},
-  {name:"Screen Shaker", basePrice:1500, amount:0, mult:1.4, effect:()=>{}},
-  {name:"Chaos Energy", basePrice:2000, amount:0, mult:1.5, effect:()=>{}},
-  {name:"Overdrive", basePrice:2500, amount:0, mult:1.5, effect:()=>clickPower+=5},
-  {name:"Emoji Boss", basePrice:3000, amount:0, mult:1.6, effect:()=>{}},
-  {name:"Auto Chaos", basePrice:4000, amount:0, mult:1.6, effect:()=>{}},
-  {name:"Super Particle Blast", basePrice:5000, amount:0, mult:1.7, effect:()=>{}},
-  {name:"Click Magnet", basePrice:6000, amount:0, mult:1.8, effect:()=>{}},
-  {name:"RNG Madness", basePrice:7000, amount:0, mult:1.8, effect:()=>{}},
-  {name:"Apocalypse Mode", basePrice:8000, amount:0, mult:2, effect:()=>{}},
-  {name:"Infinity Clicks", basePrice:10000, amount:0, mult:2, effect:()=>clickPower+=50},
-  {name:"Prestige Reset", basePrice:15000, amount:0, mult:3, effect:()=>prestige()},
-  {name:"Ultimate Chaos", basePrice:20000, amount:0, mult:5, effect:()=>alert("You have unlocked Ultimate Chaos!")},
+  {name:"Combo Booster", basePrice:600, amount:0, mult:1.3, effect:comboBoost},
+  {name:"Emoji Storm", basePrice:800, amount:0, mult:1.3, effect:emojiStorm},
+  {name:"Particle Frenzy", basePrice:1000, amount:0, mult:1.35, effect:particleFrenzy},
+  {name:"Critical Clicks", basePrice:1200, amount:0, mult:1.4, effect:criticalClicks},
+  {name:"Screen Shaker", basePrice:1500, amount:0, mult:1.4, effect:screenShaker},
+  {name:"Chaos Energy", basePrice:2000, amount:0, mult:1.5, effect:chaosEnergy},
+  {name:"Overdrive +5 Power", basePrice:2500, amount:0, mult:1.5, effect:()=>clickPower+=5},
+  {name:"Emoji Boss", basePrice:3000, amount:0, mult:1.6, effect:emojiBossSpawn},
+  {name:"Auto Chaos", basePrice:4000, amount:0, mult:1.6, effect:autoChaos},
+  {name:"Super Particle Blast", basePrice:5000, amount:0, mult:1.7, effect:superParticleBlast},
+  {name:"Click Magnet", basePrice:6000, amount:0, mult:1.8, effect:clickMagnet},
+  {name:"RNG Madness", basePrice:7000, amount:0, mult:1.8, effect:rngMadness},
+  {name:"Apocalypse Mode", basePrice:8000, amount:0, mult:2, effect:apocalypseMode},
+  {name:"Infinity Clicks +50", basePrice:10000, amount:0, mult:2, effect:()=>clickPower+=50},
+  {name:"Prestige Reset", basePrice:15000, amount:0, mult:3, effect:prestige},
+  {name:"Ultimate Chaos", basePrice:20000, amount:0, mult:5, effect:()=>alert("You have unlocked Ultimate Chaos!")}
 ];
 
+// Render shop
 function renderShop(){
   shopDiv.innerHTML='<h2>Shop</h2>';
-  shopItems.forEach((item,i)=>{
+  shopItems.forEach((item)=>{
     const cost=Math.floor(item.basePrice*Math.pow(item.mult,item.amount));
     const btn=document.createElement('button');
     btn.textContent=`${item.name} (${cost}) [Owned:${item.amount}]`;
@@ -175,8 +219,23 @@ clickBtn.onclick=(e)=>{
   spawnEmoji();
   spawnParticles(e.clientX,e.clientY,5+combo);
   shakeScreen(combo*2);
+  // Apply shop effect triggers
+  shopItems.forEach(i=>{
+    if(i.amount>0){
+      if(i.name==="Critical Clicks") criticalClicks();
+      if(i.name==="Super Particle Blast") superParticleBlast();
+      if(i.name==="Emoji Storm") emojiStorm();
+      if(i.name==="Particle Frenzy") particleFrenzy();
+      if(i.name==="Screen Shaker") screenShaker();
+      if(i.name==="Chaos Energy") chaosEnergy();
+      if(i.name==="Click Magnet") clickMagnet(e.clientX,e.clientY);
+      if(i.name==="RNG Madness") rngMadness();
+      if(i.name==="Apocalypse Mode") apocalypseMode();
+    }
+  });
 };
 
+// Mega Click
 megaClickBtn.onclick=()=>{
   points+=clickPower*50;
   pointsDisplay.textContent=points;
@@ -188,7 +247,13 @@ megaClickBtn.onclick=()=>{
 setInterval(()=>{
   points+=autoClickers;
   pointsDisplay.textContent=points;
-  for(let i=0;i<autoClickers;i++) spawnEmoji();
+  for(let i=0;i<autoClickers;i++){
+    spawnEmoji();
+    shopItems.forEach(i=>{
+      if(i.amount>0 && i.name==="Auto Chaos") autoChaos();
+      if(i.amount>0 && i.name==="Emoji Boss") emojiBossSpawn();
+    });
+  }
 },1000);
 
 // Init
