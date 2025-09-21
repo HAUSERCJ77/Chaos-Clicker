@@ -3,101 +3,188 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ultimate Chaos Clicker</title>
-
-<!-- PWA meta -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#111">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-
+<title>Chaos Clicker RPG</title>
 <style>
-/* your previous CSS here */
-body {
-  margin: 0;
-  background: #111;
-  color: #0f0;
-  font-family: 'Courier New', monospace;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  overflow: hidden;
-  transition: background 0.1s;
-}
-h1 { font-size: 2em; }
-button {
-  padding: 20px 40px;
-  margin: 10px;
-  font-size: 24px;
-  cursor: pointer;
-  background: #222;
-  border: 2px solid #0f0;
-  color: #0f0;
-  transition: transform 0.1s, background 0.1s;
-}
-.upgrade { margin-top: 20px; }
-.emoji {
-  position: absolute;
-  font-size: 24px;
-  pointer-events: none;
-  animation: floatUp 1s linear forwards;
-}
-@keyframes floatUp {
-  0% { transform: translateY(0) rotate(0deg); opacity:1;}
-  100% { transform: translateY(-150px) rotate(360deg); opacity:0;}
-}
-.particle {
-  position: absolute;
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  pointer-events: none;
-  animation: fly 0.5s linear forwards;
-}
-@keyframes fly {
-  0% { transform: translate(0,0); opacity:1; }
-  100% { transform: translate(var(--x), var(--y)); opacity:0; }
-}
-.megaClickBtn {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  font-size: 32px;
-  padding: 30px 60px;
-  background: #ff0;
-  color: #000;
-  border: 3px solid #fff;
-  display: none;
-  z-index: 9999;
-}
+  body {
+    margin: 0;
+    background: #111;
+    color: #0f0;
+    font-family: 'Courier New', monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    height: 100vh;
+    overflow-x: hidden;
+  }
+  h1 { margin: 20px; font-size: 2em; }
+  button {
+    padding: 15px 25px;
+    margin: 10px;
+    font-size: 18px;
+    cursor: pointer;
+    background: #222;
+    border: 2px solid #0f0;
+    color: #0f0;
+    transition: transform 0.1s, background 0.1s;
+  }
+  #shop { margin-top: 20px; width: 90%; max-width: 500px; }
+  .shop-item {
+    display: flex;
+    justify-content: space-between;
+    margin: 5px 0;
+  }
+  .emoji {
+    position: absolute;
+    font-size: 24px;
+    pointer-events: none;
+    animation: floatUp 1s linear forwards;
+  }
+  @keyframes floatUp {
+    0% { transform: translateY(0) rotate(0deg); opacity:1;}
+    100% { transform: translateY(-150px) rotate(360deg); opacity:0;}
+  }
+  .particle {
+    position: absolute;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: fly 0.5s linear forwards;
+  }
+  @keyframes fly {
+    0% { transform: translate(0,0); opacity:1; }
+    100% { transform: translate(var(--x), var(--y)); opacity:0; }
+  }
 </style>
 </head>
 <body>
 
 <h1>Points: <span id="points">0</span></h1>
-<div id="chaosMeter" style="width:300px;height:20px;background:#222;margin:10px;border:2px solid #0f0;"><div id="chaosFill" style="width:0%;height:100%;background:#0f0;"></div></div>
 <button id="clickBtn">CLICK!</button>
+<button id="megaClickBtn" style="display:none;">MEGA CLICK 💥</button>
 
-<div class="upgrade">
-  <button id="autoClickBtn">Buy Auto Clicker (50)</button>
-  <button id="multiplierBtn">Double Click Power (100)</button>
-  <button id="chaosBtn">Activate Chaos Mode (500)</button>
-</div>
-
-<button id="megaClickBtn" class="megaClickBtn">MEGA CLICK!</button>
-
-<audio id="clickSound" src="click.mp3"></audio>
+<div id="shop"></div>
 
 <script>
-// Your full chaos clicker JS here (same as previous version)
-// Only change: clickSound src points to local click.mp3
-// Service worker registration:
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js')
-  .then(()=>console.log('Service Worker Registered'))
-  .catch(err=>console.log('SW registration failed:', err));
+let points=0;
+let clickPower=1;
+let autoClickers=0;
+let prestigePoints=0;
+let combo=0;
+let lastClick=0;
+
+// DOM
+const pointsDisplay=document.getElementById('points');
+const clickBtn=document.getElementById('clickBtn');
+const megaClickBtn=document.getElementById('megaClickBtn');
+const shopDiv=document.getElementById('shop');
+
+// Helpers
+function randomColor(){return `hsl(${Math.floor(Math.random()*360)},100%,50%)`;}
+function randOffset(){return (Math.random()-0.5)*200+'px';}
+
+// Emojis
+let emojiSet=['💥','⚡','🔥','👾','✨'];
+
+function spawnEmoji(){
+  const emoji=document.createElement('div');
+  emoji.className='emoji';
+  emoji.textContent=emojiSet[Math.floor(Math.random()*emojiSet.length)];
+  emoji.style.left=Math.random()*window.innerWidth+'px';
+  emoji.style.top=Math.random()*window.innerHeight+'px';
+  emoji.style.color=randomColor();
+  document.body.appendChild(emoji);
+  setTimeout(()=>emoji.remove(),1000);
 }
+
+function spawnParticles(x,y,count=10){
+  for(let i=0;i<count;i++){
+    const p=document.createElement('div');
+    p.className='particle';
+    p.style.background=randomColor();
+    p.style.left=x+'px';
+    p.style.top=y+'px';
+    p.style.setProperty('--x',randOffset());
+    p.style.setProperty('--y',randOffset());
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),500);
+  }
+}
+
+function shakeScreen(mag=10){
+  const x=(Math.random()-0.5)*mag;
+  const y=(Math.random()-0.5)*mag;
+  document.body.style.transform=`translate(${x}px,${y}px)`;
+  setTimeout(()=>document.body.style.transform='translate(0,0)',100);
+}
+
+// Shop items
+let shopItems=[
+  {name:"Auto Clicker", basePrice:50, amount:0, mult:1.15, effect:()=>autoClickers++},
+  {name:"+1 Click Power", basePrice:100, amount:0, mult:1.2, effect:()=>clickPower++},
+  {name:"Double Power", basePrice:500, amount:0, mult:1.3, effect:()=>clickPower*=2},
+  {name:"Unlock Mega Click", basePrice:800, amount:0, mult:2, effect:()=>megaClickBtn.style.display='inline-block'},
+  {name:"Combo Boost", basePrice:1000, amount:0, mult:1.25, effect:()=>{}},
+  {name:"Prestige Reset", basePrice:5000, amount:0, mult:2, effect:()=>prestige()},
+];
+
+function renderShop(){
+  shopDiv.innerHTML='<h2>Shop</h2>';
+  shopItems.forEach((item,i)=>{
+    const cost=Math.floor(item.basePrice*Math.pow(item.mult,item.amount));
+    const btn=document.createElement('button');
+    btn.textContent=`${item.name} (${cost}) [Owned:${item.amount}]`;
+    btn.onclick=()=>{
+      if(points>=cost){
+        points-=cost; pointsDisplay.textContent=points;
+        item.amount++; item.effect(); renderShop();
+      }
+    };
+    const wrap=document.createElement('div');
+    wrap.className='shop-item';
+    wrap.appendChild(btn);
+    shopDiv.appendChild(wrap);
+  });
+}
+
+// Prestige
+function prestige(){
+  prestigePoints++;
+  points=0; clickPower=1; autoClickers=0;
+  shopItems.forEach(i=>i.amount=0);
+  alert("Prestige! Permanent +1 click power. Total prestige: "+prestigePoints);
+  clickPower+=prestigePoints;
+  renderShop();
+}
+
+// Clicking
+clickBtn.onclick=(e)=>{
+  const now=Date.now();
+  combo=(now-lastClick<300)?combo+1:1;
+  lastClick=now;
+  points+=clickPower*combo;
+  pointsDisplay.textContent=points;
+  spawnEmoji();
+  spawnParticles(e.clientX,e.clientY,5+combo);
+  shakeScreen(combo*2);
+};
+
+megaClickBtn.onclick=()=>{
+  points+=clickPower*50;
+  pointsDisplay.textContent=points;
+  spawnParticles(window.innerWidth/2,window.innerHeight/2,100);
+  shakeScreen(40);
+};
+
+// Auto clicker loop
+setInterval(()=>{
+  points+=autoClickers;
+  pointsDisplay.textContent=points;
+  for(let i=0;i<autoClickers;i++) spawnEmoji();
+},1000);
+
+// Init
+renderShop();
 </script>
 </body>
 </html>
