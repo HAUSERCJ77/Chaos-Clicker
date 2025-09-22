@@ -4,140 +4,56 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ultra Chaos Clicker</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0f0">
-
 <style>
-  body {
-    margin: 0;
-    background: #111;
-    color: #0f0;
-    font-family: 'Courier New', monospace;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+body {
+  margin:0; background:#111; color:#0f0; font-family:'Courier New', monospace;
+  display:flex; flex-direction:column; align-items:center; min-height:100vh;
+  overflow-x:hidden;
+}
+#gameContainer {
+  margin-top:20px; padding:20px; border:2px solid #0f0; border-radius:12px;
+  background:#1a1a1a; box-shadow:0 0 20px rgba(0,255,0,0.3); text-align:center;
+  transition:transform 0.1s; position:relative; min-width:300px;
+}
+h1 { margin:10px 0 20px; font-size:1.8em; }
+button {
+  padding:12px 20px; margin:8px 0; font-size:16px; cursor:pointer;
+  background:#222; border:2px solid #0f0; color:#0f0; border-radius:8px;
+  transition:transform 0.1s, background 0.1s, box-shadow 0.2s; width:100%; text-align:center;
+}
+button:hover { background:#333; box-shadow:0 0 10px #0f0; }
+#megaClickBtn { display:none; background:#330033; border-color:#f0f; color:#f0f; }
 
-  #gameContainer {
-    margin-top: 20px;
-    padding: 20px;
-    border: 2px solid #0f0;
-    border-radius: 12px;
-    background: #1a1a1a;
-    box-shadow: 0 0 20px rgba(0,255,0,0.3);
-    text-align: center;
-    transition: transform 0.1s;
-  }
+#bars { width:100%; max-width:400px; margin:20px auto; }
+.barWrap { margin:10px 0; }
+.barLabel { font-size:14px; margin-bottom:4px; color:#aaa; text-align:left; }
+.bar { width:100%; height:14px; border:1px solid #0f0; border-radius:8px; background:#222; overflow:hidden; }
+.fill { height:100%; width:0%; background:linear-gradient(90deg,#0f0,#0ff); transition:width 0.2s linear; }
 
-  h1 {
-    margin: 10px 0 20px;
-    font-size: 1.8em;
-  }
+#shop { margin-top:20px; width:95%; max-width:500px; }
+#shop h2 { margin-bottom:10px; }
 
-  button {
-    padding: 12px 20px;
-    margin: 8px 0;
-    font-size: 16px;
-    cursor: pointer;
-    background: #222;
-    border: 2px solid #0f0;
-    color: #0f0;
-    border-radius: 8px;
-    transition: transform 0.1s, background 0.1s, box-shadow 0.2s;
-    width: 100%;
-    text-align: center;
-  }
-  button:hover {
-    background: #333;
-    box-shadow: 0 0 10px #0f0;
-  }
+.emoji { position:absolute; font-size:24px; pointer-events:none; animation:floatUp 1s linear forwards; }
+@keyframes floatUp {0%{transform:translateY(0) rotate(0deg); opacity:1;} 100%{transform:translateY(-150px) rotate(360deg); opacity:0;}}
+.particle { position:absolute; width:5px;height:5px; border-radius:50%; pointer-events:none; animation:fly 0.5s linear forwards; }
+@keyframes fly {0%{transform:translate(0,0); opacity:1;}100%{transform:translate(var(--x),var(--y)); opacity:0;}}
+.comboText { position:absolute; color:#0ff; font-weight:bold; pointer-events:none; animation:comboFloat 0.8s ease-out forwards; }
+@keyframes comboFloat {0%{opacity:1; transform:translateY(0);}100%{opacity:0; transform:translateY(-40px);}}
 
-  #megaClickBtn {
-    display: none;
-    background: #330033;
-    border-color: #f0f;
-    color: #f0f;
-  }
-
-  #bars {
-    width: 100%;
-    max-width: 400px;
-    margin: 20px auto;
-  }
-  .barWrap {
-    margin: 10px 0;
-  }
-  .barLabel {
-    font-size: 14px;
-    margin-bottom: 4px;
-    color: #aaa;
-    text-align: left;
-  }
-  .bar {
-    width: 100%;
-    height: 14px;
-    border: 1px solid #0f0;
-    border-radius: 8px;
-    background: #222;
-    overflow: hidden;
-  }
-  .fill {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, #0f0, #0ff);
-    transition: width 0.2s linear;
-  }
-
-  #shop {
-    margin-top: 20px;
-    width: 95%;
-    max-width: 500px;
-  }
-  #shop h2 {
-    margin-bottom: 10px;
-  }
-
-  .emoji {
-    position: absolute;
-    font-size: 24px;
-    pointer-events: none;
-    animation: floatUp 1s linear forwards;
-  }
-  @keyframes floatUp {
-    0% { transform: translateY(0) rotate(0deg); opacity:1;}
-    100% { transform: translateY(-150px) rotate(360deg); opacity:0;}
-  }
-
-  .particle {
-    position: absolute;
-    width: 5px; height: 5px;
-    border-radius: 50%;
-    pointer-events: none;
-    animation: fly 0.5s linear forwards;
-  }
-  @keyframes fly {
-    0% { transform: translate(0,0); opacity:1; }
-    100% { transform: translate(var(--x), var(--y)); opacity:0; }
-  }
-
-  .comboText {
-    position: absolute;
-    color: #0ff;
-    font-weight: bold;
-    pointer-events: none;
-    animation: comboFloat 0.8s ease-out forwards;
-  }
-  @keyframes comboFloat {
-    0% { opacity:1; transform:translateY(0);}
-    100% { opacity:0; transform:translateY(-40px);}
-  }
+#achButton { position:absolute; top:10px; right:10px; width:120px; font-size:14px; }
+#achOverlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6);
+  display:none; justify-content:center; align-items:center; z-index:999; }
+#achPanel { background:#111; border:2px solid #0f0; border-radius:12px; width:300px; padding:20px; text-align:left; max-height:80%; overflow-y:auto; position:relative; }
+#achPanel h2 { margin-top:0; text-align:center; }
+.closeAch { position:absolute; top:10px; right:10px; cursor:pointer; color:#f00; font-weight:bold; }
+.achItem { margin:5px 0; padding:4px; border-bottom:1px solid #0f0; font-size:14px; }
+.locked { color:#555; }
 </style>
 </head>
 <body>
 
 <div id="gameContainer">
+  <button id="achButton">Achievements</button>
   <h1>Points: <span id="points">0</span></h1>
   <button id="clickBtn">CLICK!</button>
   <button id="megaClickBtn">MEGA CLICK 💥</button>
@@ -156,177 +72,87 @@
   <div id="shop"></div>
 </div>
 
+<div id="achOverlay">
+  <div id="achPanel">
+    <div class="closeAch">❌</div>
+    <h2>Achievements</h2>
+    <div id="achList"></div>
+  </div>
+</div>
+
 <script>
-let points=0;
-let clickPower=1;
-let autoClickers=0;
-let prestigePoints=0;
-let combo=0;
-let lastClick=0;
-let prestigeGoal=1000;
+// Game state
+let points=0, clickPower=1, autoClickers=0, prestigePoints=0, combo=0, lastClick=0, prestigeGoal=1000, permanentBonus=0;
+const achievements = [
+  {id:'firstClick', label:'First Click', desc:'Click for the first time', unlocked:false, bonus:1},
+  {id:'thousandPoints', label:'1,000 Points', desc:'Reach 1,000 points', unlocked:false, bonus:2},
+  {id:'tenKPoints', label:'10,000 Points', desc:'Reach 10,000 points', unlocked:false, bonus:5},
+  {id:'fiftyClicks', label:'50 Clicks in session', desc:'Click 50 times in a session', unlocked:false, bonus:1}
+];
 
 // DOM
 const pointsDisplay=document.getElementById('points');
 const clickBtn=document.getElementById('clickBtn');
 const megaClickBtn=document.getElementById('megaClickBtn');
 const shopDiv=document.getElementById('shop');
-const gameContainer=document.getElementById('gameContainer');
 const prestigeFill=document.getElementById('prestigeFill');
 const comboFill=document.getElementById('comboFill');
+const achOverlay=document.getElementById('achOverlay');
+const achButton=document.getElementById('achButton');
+const achList=document.getElementById('achList');
+const gameContainer=document.getElementById('gameContainer');
 
 // Helpers
 function randomColor(){return `hsl(${Math.floor(Math.random()*360)},100%,50%)`;}
 function randOffset(){return (Math.random()-0.5)*200+'px';}
 function randomInt(max){return Math.floor(Math.random()*max);}
+function spawnEmoji(){const e=document.createElement('div'); e.className='emoji'; e.textContent=['💥','⚡','🔥','👾','✨'][randomInt(5)]; e.style.left=randomInt(window.innerWidth)+'px'; e.style.top=randomInt(window.innerHeight)+'px'; e.style.color=randomColor(); document.body.appendChild(e); setTimeout(()=>e.remove(),1000);}
+function spawnParticles(x,y,count=10){for(let i=0;i<count;i++){const p=document.createElement('div'); p.className='particle'; p.style.background=randomColor(); p.style.left=x+'px'; p.style.top=y+'px'; p.style.setProperty('--x',randOffset()); p.style.setProperty('--y',randOffset()); document.body.appendChild(p); setTimeout(()=>p.remove(),500);}}
+function spawnComboText(x,y,text){const t=document.createElement('div'); t.className='comboText'; t.style.left=x+'px'; t.style.top=y+'px'; t.textContent=text; document.body.appendChild(t); setTimeout(()=>t.remove(),800);}
+function shakeScreen(mag=10){const x=(Math.random()-0.5)*mag; const y=(Math.random()-0.5)*mag; gameContainer.style.transform=`translate(${x}px,${y}px)`; setTimeout(()=>gameContainer.style.transform='translate(0,0)',100);}
 
-// Emojis
-let emojiSet=['💥','⚡','🔥','👾','✨'];
-
-// Spawn functions
-function spawnEmoji(){
-  const emoji=document.createElement('div');
-  emoji.className='emoji';
-  emoji.textContent=emojiSet[randomInt(emojiSet.length)];
-  emoji.style.left=randomInt(window.innerWidth)+'px';
-  emoji.style.top=randomInt(window.innerHeight)+'px';
-  emoji.style.color=randomColor();
-  document.body.appendChild(emoji);
-  setTimeout(()=>emoji.remove(),1000);
-}
-
-function spawnParticles(x,y,count=10){
-  for(let i=0;i<count;i++){
-    const p=document.createElement('div');
-    p.className='particle';
-    p.style.background=randomColor();
-    p.style.left=x+'px';
-    p.style.top=y+'px';
-    p.style.setProperty('--x',randOffset());
-    p.style.setProperty('--y',randOffset());
-    document.body.appendChild(p);
-    setTimeout(()=>p.remove(),500);
-  }
-}
-
-function spawnComboText(x,y,text){
-  const t=document.createElement('div');
-  t.className='comboText';
-  t.style.left=x+'px';
-  t.style.top=y+'px';
-  t.textContent=text;
-  document.body.appendChild(t);
-  setTimeout(()=>t.remove(),800);
-}
-
-// Shake only container
-function shakeScreen(mag=10){
-  const x=(Math.random()-0.5)*mag;
-  const y=(Math.random()-0.5)*mag;
-  gameContainer.style.transform=`translate(${x}px,${y}px)`;
-  setTimeout(()=>gameContainer.style.transform='translate(0,0)',100);
-}
-
-// Random Event
-function randomEvent(){
-  const r=Math.random();
-  if(r<0.1){shakeScreen(50);}
-  else if(r<0.2){clickPower*=2; setTimeout(()=>clickPower/=2,5000);}
-  else if(r<0.3){document.body.style.filter='invert(1)'; setTimeout(()=>document.body.style.filter='invert(0)',5000);}
-  else if(r<0.4){spawnParticles(randomInt(window.innerWidth),randomInt(window.innerHeight),30);}
-  else if(r<0.5){spawnEmoji();}
-}
-
-// Upgrade effects
-function comboBoost(){ /* combo handled in click */ }
-function emojiStorm(){ for(let i=0;i<3;i++) spawnEmoji(); }
-function particleFrenzy(){ spawnParticles(randomInt(window.innerWidth),randomInt(window.innerHeight),15); }
-function criticalClicks(){ if(Math.random()<0.1){ points+=clickPower*5; updatePoints(); } }
-function screenShaker(){ shakeScreen(30); }
-function chaosEnergy(){ document.body.style.background=randomColor(); setTimeout(()=>document.body.style.background='#111',300); }
-function emojiBossSpawn(){ 
-  const boss=document.createElement('div');
-  boss.textContent='👹';
-  boss.style.position='absolute';
-  boss.style.fontSize='64px';
-  boss.style.left=randomInt(window.innerWidth-100)+'px';
-  boss.style.top=randomInt(window.innerHeight-100)+'px';
-  boss.style.cursor='pointer';
-  document.body.appendChild(boss);
-  boss.onclick=()=>{
-    points+=500; updatePoints();
-    spawnParticles(parseInt(boss.style.left),parseInt(boss.style.top),50);
-    boss.remove();
-  };
-  setTimeout(()=>boss.remove(),15000);
-}
-function autoChaos(){ if(Math.random()<0.2) randomEvent(); }
-function superParticleBlast(){ spawnParticles(randomInt(window.innerWidth),randomInt(window.innerHeight),50); }
-function clickMagnet(x,y){ document.querySelectorAll('.particle,.emoji').forEach(el=>{
-  el.style.left=x+'px'; el.style.top=y+'px';
-}); }
-function rngMadness(){ if(Math.random()<0.1){ points+=randomInt(50)+10; updatePoints(); } }
-function apocalypseMode(){ combo*=2; setTimeout(()=>combo=1,15000); }
-
-// Shop items
-let shopItems=[
-  {name:"Auto Clicker", basePrice:50, amount:0, mult:1.15, effect:()=>autoClickers++},
-  {name:"+1 Click Power", basePrice:100, amount:0, mult:1.2, effect:()=>clickPower++},
-  {name:"Double Power", basePrice:250, amount:0, mult:1.25, effect:()=>clickPower*=2},
-  {name:"Unlock Mega Click", basePrice:500, amount:0, mult:2, effect:()=>megaClickBtn.style.display='inline-block'},
-  {name:"Combo Booster", basePrice:600, amount:0, mult:1.3, effect:comboBoost},
-  {name:"Emoji Storm", basePrice:800, amount:0, mult:1.3, effect:emojiStorm},
-  {name:"Particle Frenzy", basePrice:1000, amount:0, mult:1.35, effect:particleFrenzy},
-  {name:"Critical Clicks", basePrice:1200, amount:0, mult:1.4, effect:criticalClicks},
-  {name:"Screen Shaker", basePrice:1500, amount:0, mult:1.4, effect:screenShaker},
-  {name:"Chaos Energy", basePrice:2000, amount:0, mult:1.5, effect:chaosEnergy},
-  {name:"Overdrive +5 Power", basePrice:2500, amount:0, mult:1.5, effect:()=>clickPower+=5},
-  {name:"Emoji Boss", basePrice:3000, amount:0, mult:1.6, effect:emojiBossSpawn},
-  {name:"Auto Chaos", basePrice:4000, amount:0, mult:1.6, effect:autoChaos},
-  {name:"Super Particle Blast", basePrice:5000, amount:0, mult:1.7, effect:superParticleBlast},
-  {name:"Click Magnet", basePrice:6000, amount:0, mult:1.8, effect:clickMagnet},
-  {name:"RNG Madness", basePrice:7000, amount:0, mult:1.8, effect:rngMadness},
-  {name:"Apocalypse Mode", basePrice:8000, amount:0, mult:2, effect:apocalypseMode},
-  {name:"Infinity Clicks +50", basePrice:10000, amount:0, mult:2, effect:()=>clickPower+=50},
-  {name:"Prestige Reset", basePrice:15000, amount:0, mult:3, effect:prestige},
-  {name:"Ultimate Chaos", basePrice:20000, amount:0, mult:5, effect:()=>alert("You have unlocked Ultimate Chaos!")}
-];
-
-function renderShop(){
-  shopDiv.innerHTML='<h2>Shop</h2>';
-  shopItems.forEach((item)=>{
-    const cost=Math.floor(item.basePrice*Math.pow(item.mult,item.amount));
-    const btn=document.createElement('button');
-    btn.textContent=`${item.name} (${cost}) [Owned:${item.amount}]`;
-    btn.onclick=()=>{
-      if(points>=cost){
-        points-=cost; updatePoints();
-        item.amount++; item.effect(); renderShop();
-      }
-    };
-    shopDiv.appendChild(btn);
+// Achievements UI
+function renderAchievements(){
+  achList.innerHTML='';
+  achievements.forEach(a=>{
+    const div=document.createElement('div'); div.className='achItem '+(a.unlocked?'':'locked');
+    div.textContent=a.label + (a.unlocked?` (+${a.bonus} CP)`: ' (Locked)');
+    achList.appendChild(div);
   });
 }
 
-function updatePoints(){
-  pointsDisplay.textContent=points;
-  // Prestige bar
-  prestigeFill.style.width=Math.min(100,(points/prestigeGoal)*100)+'%';
+// Check achievements
+function checkAchievements(){
+  achievements.forEach(a=>{
+    if(!a.unlocked){
+      if(a.id==='firstClick' && points>0) a.unlocked=true;
+      if(a.id==='thousandPoints' && points>=1000) a.unlocked=true;
+      if(a.id==='tenKPoints' && points>=10000) a.unlocked=true;
+      if(a.id==='fiftyClicks' && combo>=50) a.unlocked=true;
+      if(a.unlocked) { permanentBonus += a.bonus; }
+    }
+  });
+  renderAchievements();
 }
 
-// Prestige
+// Shop (simple)
+let shopItems=[{name:"Auto Clicker",basePrice:50,amount:0,mult:1.15,effect:()=>autoClickers++},{name:"+1 Click Power",basePrice:100,amount:0,mult:1.2,effect:()=>clickPower++}];
+function renderShop(){shopDiv.innerHTML='<h2>Shop</h2>'; shopItems.forEach(i=>{const cost=Math.floor(i.basePrice*Math.pow(i.mult,i.amount)); const btn=document.createElement('button'); btn.textContent=`${i.name} (${cost}) [Owned:${i.amount}]`; btn.onclick=()=>{if(points>=cost){points-=cost; i.amount++; i.effect(); updatePoints(); renderShop();}}; shopDiv.appendChild(btn);});}
+
+// Update UI
+function updatePoints(){pointsDisplay.textContent=points; prestigeFill.style.width=Math.min(100,(points/prestigeGoal)*100)+'%'; comboFill.style.width=Math.min(100,(combo/20)*100)+'%'; checkAchievements();}
+
+// Prestige with scaled bonus
 function prestige(){
   if(points>=prestigeGoal){
+    let bonus=Math.floor(points/1000)+1; // scaled
     prestigePoints++;
-    points=0; clickPower=1; autoClickers=0;
-    shopItems.forEach(i=>i.amount=0);
-    alert("Prestige! Permanent +1 click power. Total prestige: "+prestigePoints);
-    clickPower+=prestigePoints;
+    clickPower+=bonus+permanentBonus;
+    points=0; autoClickers=0; shopItems.forEach(i=>i.amount=0);
+    alert(`Prestige! Permanent +${bonus+permanentBonus} click power. Total prestige: ${prestigePoints}`);
     prestigeGoal=Math.floor(prestigeGoal*1.8);
-    renderShop();
-    updatePoints();
-  } else {
-    alert("Not enough points to prestige!");
-  }
+    updatePoints(); renderShop();
+  } else { alert("Not enough points to prestige!"); }
 }
 
 // Clicking
@@ -336,51 +162,26 @@ clickBtn.onclick=(e)=>{
   lastClick=now;
   points+=clickPower*combo;
   updatePoints();
-
   spawnEmoji();
   spawnParticles(e.clientX,e.clientY,5+combo);
   spawnComboText(e.clientX,e.clientY,`+${combo}x`);
-  comboFill.style.width=Math.min(100,(combo/20)*100)+'%';
   shakeScreen(combo*2);
-
-  shopItems.forEach(i=>{
-    if(i.amount>0){
-      if(i.name==="Critical Clicks") criticalClicks();
-      if(i.name==="Super Particle Blast") superParticleBlast();
-      if(i.name==="Emoji Storm") emojiStorm();
-      if(i.name==="Particle Frenzy") particleFrenzy();
-      if(i.name==="Screen Shaker") screenShaker();
-      if(i.name==="Chaos Energy") chaosEnergy();
-      if(i.name==="Click Magnet") clickMagnet(e.clientX,e.clientY);
-      if(i.name==="RNG Madness") rngMadness();
-      if(i.name==="Apocalypse Mode") apocalypseMode();
-    }
-  });
 };
 
-// Mega Click
-megaClickBtn.onclick=()=>{
-  points+=clickPower*50;
-  updatePoints();
-  spawnParticles(window.innerWidth/2,window.innerHeight/2,100);
-  shakeScreen(40);
-};
+// Mega click
+megaClickBtn.onclick=()=>{ points+=clickPower*50; updatePoints(); spawnParticles(window.innerWidth/2,window.innerHeight/2,100); shakeScreen(40); };
 
-// Auto clicker loop
-setInterval(()=>{
-  points+=autoClickers;
-  updatePoints();
-  for(let i=0;i<autoClickers;i++){
-    spawnEmoji();
-    shopItems.forEach(i=>{
-      if(i.amount>0 && i.name==="Auto Chaos") autoChaos();
-      if(i.amount>0 && i.name==="Emoji Boss") emojiBossSpawn();
-    });
-  }
-},1000);
+// Auto loop
+setInterval(()=>{points+=autoClickers; updatePoints(); for(let i=0;i<autoClickers;i++){spawnEmoji();}},1000);
+
+// Achievements button
+achButton.onclick=()=>{ achOverlay.style.display='flex'; };
+document.querySelector('.closeAch').onclick=()=>{ achOverlay.style.display='none'; };
 
 // Init
 renderShop();
+updatePoints();
+renderAchievements();
 </script>
 </body>
 </html>
