@@ -158,34 +158,41 @@
 </style>
 </head>
   <div id="hackMenu">
-  <h2>Griffin's Hack Menu</h2>
-  <button onclick="points += 10000; updatePoints()">+10,000 Points</button>
-  <button onclick="clickPower += 50">+50 Click Power</button>
-  <button onclick="autoClickers += 10">+10 Auto Clickers</button>
-    <button onclick="
-  points = 999999999999999999999999999999999999; 
-  clickPower = 9999999999999999999; 
-  autoClickers = 9999999999999999999999999999;
-  updatePoints();
-">MAX EVERYTHING</button>
-    <button onclick="combo = 9999999999999999999999999999999999999999999999; comboFill.style.width='100%';">INFINITE COMBO</button>
-    <button onclick="points = prestigeGoal; prestige();">INSTANT PRESTIGE</button>
-<button onclick="
-  setInterval(()=>{
-    spawnParticles(Math.random()*window.innerWidth, Math.random()*window.innerHeight, 50);
-    spawnEmoji();
-    chaosEnergy();
-    shakeScreen(50);
-  }, 100);
-">CHAOS OVERLOAD</button>
-<button onclick="
-  shopItems.forEach(i=>{i.amount=999; i.effect();}); 
-  renderShop();
-">UNLOCK ALL UPGRADES</button>
+  <h2>Griffin God Mode Menu</h2>
 
+  <!-- Points & Power -->
+  <button onclick="points += 1000000; updatePoints();">+1,000,000 Points</button>
+  <button onclick="clickPower += 500; updatePoints();">+500 Click Power</button>
+  <button onclick="autoClickers += 100; updatePoints();">+100 Auto Clickers</button>
+  <button onclick="
+    points = 9999999; 
+    clickPower = 9999; 
+    autoClickers = 999; 
+    updatePoints();
+  ">MAX EVERYTHING</button>
+
+  <!-- Combo & Prestige -->
+  <button onclick="combo = 9999; comboFill.style.width='100%';">INFINITE COMBO</button>
+  <button onclick="points = prestigeGoal; prestige();">INSTANT PRESTIGE</button>
+
+  <!-- Chaos & Fun -->
+  <button onclick="
+    setInterval(()=>{
+      spawnParticles(Math.random()*window.innerWidth, Math.random()*window.innerHeight, 50);
+      spawnEmoji();
+      chaosEnergy();
+      shakeScreen(50);
+    }, 100);
+  ">CHAOS OVERLOAD</button>
+
+  <!-- Shop -->
+  <button onclick="
+    shopItems.forEach(i=>{i.amount=999; i.effect();}); 
+    renderShop();
+  ">UNLOCK ALL UPGRADES</button>
 
   <br>
-  <button onclick="document.getElementById('hackMenu').style.display='none'">Close</button>
+  <button onclick="document.getElementById('hackMenu').style.display='none'">Close Menu</button>
 </div>
 
 <body>
