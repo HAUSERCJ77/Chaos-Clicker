@@ -161,6 +161,7 @@
   <h2>Griffin God Mode Menu</h2>
 
   <!-- Points & Power -->
+  <button onclick="turnEmojisToLizards()">ALL LIZARDS MODE</button>
   <button onclick="points += 1000000; updatePoints();">+1,000,000 Points</button>
   <button onclick="clickPower += 500; updatePoints();">+500 Click Power</button>
   <button onclick="autoClickers += 100; updatePoints();">+100 Auto Clickers</button>
@@ -438,6 +439,26 @@ setInterval(()=>{
     });
   }
 },1000);
+function turnEmojisToLizards() {
+  // Replace existing emojis on screen
+  document.querySelectorAll('.emoji').forEach(e => e.textContent = '🦎');
+  
+  // Override spawnEmoji to always spawn lizards
+  const originalSpawnEmoji = spawnEmoji;
+  spawnEmoji = function(x, y) {
+    const e = document.createElement('div');
+    e.className = 'emoji';
+    e.textContent = '🦎';
+    e.style.position = 'absolute';
+    e.style.left = (x || Math.random()*window.innerWidth) + 'px';
+    e.style.top = (y || Math.random()*window.innerHeight) + 'px';
+    e.style.fontSize = Math.random()*40 + 20 + 'px';
+    document.body.appendChild(e);
+    setTimeout(()=>e.remove(), 3000); // Remove after 3 sec
+  };
+  
+  alert('All emojis are now LIZARDS 🦎');
+}
 
 // Init
 renderShop();
