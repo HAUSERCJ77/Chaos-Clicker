@@ -13,7 +13,6 @@
       .catch(err => console.log('Service Worker Failed:', err));
   }
 </script>
-<script src="chaos.js"></script>
 <style>
   body {
     margin: 0;
@@ -237,7 +236,19 @@ megaClickBtn.onclick=()=>{
 /* =================== AUTOCLICKER LOOP =================== */
 setInterval(()=>{
   points += autoClickers;
-});
+  pointsDisplay.textContent=points;
+  for(let i=0;i<autoClickers;i++){
+    spawnEmoji();
+    shopItems.forEach(item=>{
+      if(item.amount>0 && item.name==="Auto Chaos") item.effect();
+      if(item.amount>0 && item.name==="Emoji Boss") item.effect();
+    });
+  }
+},1000);
+
+/* =================== INIT =================== */
+renderShop();
+
 </script>
 </body>
 </html>
