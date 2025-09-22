@@ -134,8 +134,38 @@
     0% { opacity:1; transform:translateY(0);}
     100% { opacity:0; transform:translateY(-40px);}
   }
+  #hackMenu {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #111;
+  border: 2px solid #f0f;
+  color: #f0f;
+  padding: 20px;
+  z-index: 9999;
+  border-radius: 12px;
+  text-align: center;
+}
+#hackMenu button {
+  margin: 5px;
+  background: #222;
+  border: 1px solid #f0f;
+  color: #f0f;
+}
+
 </style>
 </head>
+  <div id="hackMenu">
+  <h2>Griffin's Hack Menu</h2>
+  <button onclick="points += 10000; updatePoints()">+10,000 Points</button>
+  <button onclick="clickPower += 50">+50 Click Power</button>
+  <button onclick="autoClickers += 10">+10 Auto Clickers</button>
+  <br>
+  <button onclick="document.getElementById('hackMenu').style.display='none'">Close</button>
+</div>
+
 <body>
 
 <div id="gameContainer">
@@ -382,6 +412,18 @@ setInterval(()=>{
 
 // Init
 renderShop();
+  // Hidden Konami-style sequence for Griffin: G-R-I-F-F-I-N
+const griffinCode = ['g','r','i','f','f','i','n'];
+let griffinInput = [];
+
+document.addEventListener('keydown', (e)=>{
+  griffinInput.push(e.key.toLowerCase());
+  if(griffinInput.slice(-griffinCode.length).join('') === griffinCode.join('')){
+    document.getElementById('hackMenu').style.display='block';
+    griffinInput = []; // reset
+  }
+});
+
 </script>
 </body>
 </html>
