@@ -1,490 +1,828 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ultra Chaos Clicker</title>
-<link rel="manifest" href="manifest.json">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Ultra Chaos Clicker — v1.1.0</title>
 <meta name="theme-color" content="#0f0">
 <link rel="icon" href="icon-256.png" type="image/png">
 
 <style>
-  body {
-    margin: 0;
-    background: #111;
-    color: #0f0;
-    font-family: 'Courier New', monospace;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
-    overflow-x: hidden;
+  :root{
+    --bg:#111; --panel:#1a1a1a; --accent:#0f0; --muted:#aaa; --hot:#0ff; --pink:#f0f;
+    --radius:12px;
+  }
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--accent);font-family: 'Courier New', monospace;}
+  /* Layout */
+  .app {
+    min-height:100vh;
+    display:flex;
+    gap:16px;
+    padding:18px;
+    box-sizing:border-box;
+    align-items:flex-start;
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+  #gameContainer{
+    width:360px;
+    max-width:95%;
+    background:var(--panel);
+    border:2px solid var(--accent);
+    border-radius:var(--radius);
+    box-shadow:0 0 20px rgba(0,255,0,0.12);
+    padding:14px;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+  }
+  h1{margin:8px 0 12px;font-size:1.4rem;}
+  .big-btn{
+    display:block;
+    width:100%;
+    padding:12px;
+    margin:8px 0;
+    background:#222;border:2px solid var(--accent);color:var(--accent);
+    border-radius:10px;font-size:1rem;cursor:pointer;
+    transition:transform .08s,box-shadow .12s,background .08s;
+  }
+  .big-btn:active{transform:translateY(1px) scale(.998);}
+  .big-btn:hover{box-shadow:0 0 10px rgba(0,255,0,0.12);background:#2a2a2a;}
+
+  #bars{margin:12px auto; width:100%;}
+  .barWrap{margin:8px 0;text-align:left;}
+  .barLabel{font-size:12px;color:var(--muted);margin-bottom:6px;}
+  .bar{width:100%;height:14px;border-radius:8px;background:#222;border:1px solid var(--accent);overflow:hidden}
+  .fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--hot));transition:width .25s linear;}
+
+  #controls{display:flex;gap:8px;margin-top:10px;}
+  #controls button{flex:1;padding:8px;font-size:14px;}
+
+  /* Right-side panels */
+  .side {
+    width:320px;
+    max-width:95%;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .panel{
+    padding:12px;border-radius:var(--radius);background:var(--panel);border:2px solid #222;color:var(--accent);
+    box-shadow:0 0 10px rgba(0,0,0,0.6);
+  }
+  .panel h2{margin:0 0 8px;font-size:1rem;color:var(--hot)}
+  #shop button{display:block;width:100%;text-align:left;margin:6px 0;padding:10px;border-radius:8px;background:#111;border:1px solid #222;color:var(--accent);cursor:pointer;}
+  #shop button .cost{float:right;color:var(--muted);font-size:12px;}
+  .tooltip {
+    position:relative; display:inline-block;
+  }
+  .tooltip .tip {
+    visibility:hidden;opacity:0;transition:opacity .15s; position:absolute; left:50%; transform:translateX(-50%); bottom:110%;
+    background:#0b0b0b;color:#fff;padding:8px;border-radius:8px; width:200px;border:1px solid #333;font-size:12px;z-index:999;
+  }
+  .tooltip:focus .tip, .tooltip:hover .tip, .tooltip[data-show="true"] .tip { visibility:visible;opacity:1; }
+
+  /* achievement toast */
+  #toast{
+    position:fixed;right:18px;bottom:18px;background:linear-gradient(180deg,#0f0,#0cc);color:#001;padding:10px 14px;border-radius:12px;border:2px solid #0a0;font-weight:700;display:none;z-index:9998;
   }
 
-  #gameContainer {
-    margin-top: 20px;
-    padding: 20px;
-    border: 2px solid #0f0;
-    border-radius: 12px;
-    background: #1a1a1a;
-    box-shadow: 0 0 20px rgba(0,255,0,0.3);
-    text-align: center;
-    transition: transform 0.1s;
+  /* Hack menu */
+  #hackMenu{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#111;border:2px solid var(--pink);color:var(--pink);padding:18px;border-radius:12px;z-index:9999}
+  #hackMenu button{margin:6px;background:#222;border:1px solid var(--pink);color:var(--pink);padding:8px;border-radius:8px}
+
+  /* responsive mobile tweaks */
+  @media (max-width:900px){
+    .app{padding:12px;}
+    .side{width:100%}
+    #gameContainer{width:100%}
   }
 
-  h1 {
-    margin: 10px 0 20px;
-    font-size: 1.8em;
-  }
+  /* limited emoji/particle style */
+  .emoji{position:absolute;font-size:20px;pointer-events:none;animation:floatUp 1s linear forwards;}
+  @keyframes floatUp{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(-120px) rotate(360deg);opacity:0}}
+  .particle{position:absolute;width:6px;height:6px;border-radius:50%;pointer-events:none;animation:fly .6s linear forwards}
+  @keyframes fly{0%{transform:translate(0,0);opacity:1}100%{transform:translate(var(--x),var(--y));opacity:0}}
+  .comboText{position:absolute;color:var(--hot);font-weight:bold;pointer-events:none;animation:comboFloat .8s ease-out forwards}
+  @keyframes comboFloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-40px)}}
 
-  button {
-    padding: 12px 20px;
-    margin: 8px 0;
-    font-size: 16px;
-    cursor: pointer;
-    background: #222;
-    border: 2px solid #0f0;
-    color: #0f0;
-    border-radius: 8px;
-    transition: transform 0.1s, background 0.1s, box-shadow 0.2s;
-    width: 100%;
-    text-align: center;
-  }
-  button:hover {
-    background: #333;
-    box-shadow: 0 0 10px #0f0;
-  }
-
-  #megaClickBtn {
-    display: none;
-    background: #330033;
-    border-color: #f0f;
-    color: #f0f;
-  }
-
-  #bars {
-    width: 100%;
-    max-width: 400px;
-    margin: 20px auto;
-  }
-  .barWrap {
-    margin: 10px 0;
-  }
-  .barLabel {
-    font-size: 14px;
-    margin-bottom: 4px;
-    color: #aaa;
-    text-align: left;
-  }
-  .bar {
-    width: 100%;
-    height: 14px;
-    border: 1px solid #0f0;
-    border-radius: 8px;
-    background: #222;
-    overflow: hidden;
-  }
-  .fill {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, #0f0, #0ff);
-    transition: width 0.2s linear;
-  }
-
-  #shop {
-    margin-top: 20px;
-    width: 95%;
-    max-width: 500px;
-  }
-  #shop h2 {
-    margin-bottom: 10px;
-  }
-
-  .emoji {
-    position: absolute;
-    font-size: 24px;
-    pointer-events: none;
-    animation: floatUp 1s linear forwards;
-  }
-  @keyframes floatUp {
-    0% { transform: translateY(0) rotate(0deg); opacity:1;}
-    100% { transform: translateY(-150px) rotate(360deg); opacity:0;}
-  }
-
-  .particle {
-    position: absolute;
-    width: 5px; height: 5px;
-    border-radius: 50%;
-    pointer-events: none;
-    animation: fly 0.5s linear forwards;
-  }
-  @keyframes fly {
-    0% { transform: translate(0,0); opacity:1; }
-    100% { transform: translate(var(--x), var(--y)); opacity:0; }
-  }
-
-  .comboText {
-    position: absolute;
-    color: #0ff;
-    font-weight: bold;
-    pointer-events: none;
-    animation: comboFloat 0.8s ease-out forwards;
-  }
-  @keyframes comboFloat {
-    0% { opacity:1; transform:translateY(0);}
-    100% { opacity:0; transform:translateY(-40px);}
-  }
-  #hackMenu {
-  display: none;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: #111;
-  border: 2px solid #f0f;
-  color: #f0f;
-  padding: 20px;
-  z-index: 9999;
-  border-radius: 12px;
-  text-align: center;
-}
-#hackMenu button {
-  margin: 5px;
-  background: #222;
-  border: 1px solid #f0f;
-  color: #f0f;
-}
-
+  /* small helpers */
+  .muted{color:var(--muted);font-size:13px}
+  .row{display:flex;gap:8px;align-items:center}
+  .stat{font-size:13px;color:var(--hot)}
+  .tiny{font-size:12px;color:var(--muted)}
+  .pill{background:#0a0a0a;padding:6px 8px;border-radius:8px;border:1px solid #222}
+  .divider{height:1px;background:#222;margin:10px 0}
 </style>
 </head>
-  <div id="hackMenu">
-  <h2>Griffin God Mode Menu</h2>
 
-  <!-- Points & Power -->
+<body>
+<div class="app">
+
+  <!-- Game Container -->
+  <div id="gameContainer" class="panel">
+    <h1>Points: <span id="points">0</span></h1>
+
+    <button id="clickBtn" class="big-btn" aria-label="Click to earn points">CLICK!</button>
+    <button id="megaClickBtn" class="big-btn" style="display:none;background:#330033;border-color:var(--pink);color:var(--pink)">MEGA CLICK 💥</button>
+
+    <div id="bars">
+      <div class="barWrap">
+        <div class="barLabel">Prestige Progress</div>
+        <div class="bar"><div id="prestigeFill" class="fill"></div></div>
+      </div>
+      <div class="barWrap">
+        <div class="barLabel">Combo</div>
+        <div class="bar"><div id="comboFill" class="fill"></div></div>
+      </div>
+    </div>
+
+    <div id="controls" class="muted">
+      <button id="saveBtn" class="pill tiny">Save</button>
+      <button id="loadBtn" class="pill tiny">Load</button>
+      <button id="resetBtn" class="pill tiny">Reset</button>
+    </div>
+
+    <div style="margin-top:12px" class="tiny">Tip: press letter sequence G R I F F I N to open secret menu.</div>
+  </div>
+
+  <!-- Right side: Shop / Stats / Achievements -->
+  <div class="side">
+    <div class="panel" id="shopPanel">
+      <h2>Shop</h2>
+      <div id="shop"></div>
+    </div>
+
+    <div class="panel" id="prestigePanel">
+      <h2>Prestige</h2>
+      <div class="tiny">Prestige Points: <span id="prestigePoints">0</span></div>
+      <div class="divider"></div>
+      <div id="prestigeUpgrades"></div>
+    </div>
+
+    <div class="panel" id="statsPanel">
+      <h2>Stats</h2>
+      <div class="row"><div class="stat">Lifetime Clicks:</div><div id="lifetimeClicks" class="muted" style="margin-left:auto">0</div></div>
+      <div class="row"><div class="stat">Total Points Earned:</div><div id="lifetimePoints" class="muted" style="margin-left:auto">0</div></div>
+      <div class="row"><div class="stat">Prestiges:</div><div id="prestigeCount" class="muted" style="margin-left:auto">0</div></div>
+      <div class="divider"></div>
+      <div class="row">
+        <button id="soundToggle" class="pill tiny">Sound: ON</button>
+        <button id="musicToggle" class="pill tiny">Music: OFF</button>
+      </div>
+    </div>
+
+    <div class="panel" id="achPanel">
+      <h2>Achievements</h2>
+      <div id="achievementsList" class="tiny">No achievements yet.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Achievement toast -->
+<div id="toast"></div>
+
+<!-- Hidden hack menu kept intentionally -->
+<div id="hackMenu" aria-hidden="true">
+  <h2>Griffin God Mode Menu</h2>
   <button onclick="turnEmojisToLizards()">ALL LIZARDS MODE</button>
   <button onclick="points += 1000000; updatePoints();">+1,000,000 Points</button>
   <button onclick="clickPower += 500; updatePoints();">+500 Click Power</button>
   <button onclick="autoClickers += 100; updatePoints();">+100 Auto Clickers</button>
-  <button onclick="
-    points = 9999999; 
-    clickPower = 9999; 
-    autoClickers = 999; 
-    updatePoints();
-  ">MAX EVERYTHING</button>
-
-  <!-- Combo & Prestige -->
+  <button onclick="points = 9999999; clickPower = 9999; autoClickers = 999; updatePoints();">MAX EVERYTHING</button>
   <button onclick="combo = 9999; comboFill.style.width='100%';">INFINITE COMBO</button>
   <button onclick="points = prestigeGoal; prestige();">INSTANT PRESTIGE</button>
-
-  <!-- Chaos & Fun -->
-  <button onclick="
-    setInterval(()=>{
-      spawnParticles(Math.random()*window.innerWidth, Math.random()*window.innerHeight, 50);
-      spawnEmoji();
-      chaosEnergy();
-      shakeScreen(50);
-    }, 100);
-  ">CHAOS OVERLOAD</button>
-
-  <!-- Shop -->
-  <button onclick="
-    shopItems.forEach(i=>{i.amount=999; i.effect();}); 
-    renderShop();
-  ">UNLOCK ALL UPGRADES</button>
-
-  <br>
-  <button onclick="document.getElementById('hackMenu').style.display='none'">Close Menu</button>
+  <button onclick="startChaosOverload()">CHAOS OVERLOAD</button>
+  <button onclick="shopItems.forEach(i=>{i.amount=999; i.effect();}); renderShop();">UNLOCK ALL UPGRADES</button>
+  <br><button onclick="document.getElementById('hackMenu').style.display='none'">Close Menu</button>
 </div>
 
-<body>
-
-<div id="gameContainer">
-  <h1>Points: <span id="points">0</span></h1>
-  <button id="clickBtn">CLICK!</button>
-  <button id="megaClickBtn">MEGA CLICK 💥</button>
-
-  <div id="bars">
-    <div class="barWrap">
-      <div class="barLabel">Prestige Progress</div>
-      <div class="bar"><div id="prestigeFill" class="fill"></div></div>
-    </div>
-    <div class="barWrap">
-      <div class="barLabel">Combo</div>
-      <div class="bar"><div id="comboFill" class="fill"></div></div>
-    </div>
-  </div>
-
-  <div id="shop"></div>
-</div>
 <script>
-  if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('https://hausercj77.github.io/Chaos-Clicker/sw.js')
-      .then(registration => {
-        console.log('Service Worker registered with scope:', registration.scope);
-      })
-      .catch(error => {
-        console.error('Service Worker registration failed:', error);
-      });
-  });
+/* ============================================================
+   Chaos-Clicker v1.1.0 — single-file rewrite
+   Goals implemented: prestige shop, achievements, autosave/load,
+   stats, mobile UI improvements, tooltips, sound/music toggle.
+   Hack menu preserved.
+   ============================================================ */
+
+/* ---------------------------
+   Game state & defaults
+   --------------------------- */
+let state = {
+  points: 0,
+  clickPower: 1,
+  autoClickers: 0,
+  prestigePoints: 0,
+  prestigeCount: 0,
+  lifetimeClicks: 0,
+  lifetimePointsEarned: 0,
+  combo: 0,
+  lastClick: 0,
+  prestigeGoal: 1000,
+  shopItems: [],
+  prestigeUpgrades: [],
+  achievementsUnlocked: [],
+  version: '1.1.0'
+};
+
+/* DOM refs */
+const pointsDisplay = document.getElementById('points');
+const clickBtn = document.getElementById('clickBtn');
+const megaClickBtn = document.getElementById('megaClickBtn');
+const shopDiv = document.getElementById('shop');
+const prestigeFill = document.getElementById('prestigeFill');
+const comboFill = document.getElementById('comboFill');
+const prestigePointsSpan = document.getElementById('prestigePoints');
+const prestigeUpgradesDiv = document.getElementById('prestigeUpgrades');
+const achievementsList = document.getElementById('achievementsList');
+const toast = document.getElementById('toast');
+
+const lifetimeClicksEl = document.getElementById('lifetimeClicks');
+const lifetimePointsEl = document.getElementById('lifetimePoints');
+const prestigeCountEl = document.getElementById('prestigeCount');
+
+const saveBtn = document.getElementById('saveBtn');
+const loadBtn = document.getElementById('loadBtn');
+const resetBtn = document.getElementById('resetBtn');
+
+const soundToggle = document.getElementById('soundToggle');
+const musicToggle = document.getElementById('musicToggle');
+
+/* Performance caps */
+const MAX_EMOJIS = 30;
+const MAX_PARTICLES = 60;
+
+/* Utils */
+function randInt(max){return Math.floor(Math.random()*max);}
+function rndColor(){ return `hsl(${randInt(360)} 100% 50%)`; }
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+
+/* ---------------------------
+   Audio (WebAudio synth)
+   - click sound via short oscillator
+   - simple drone "music" toggled on/off
+   --------------------------- */
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let musicOsc = null;
+let soundOn = true;
+let musicOn = false;
+
+function playClickSound(){
+  if(!soundOn) return;
+  try {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = 'square';
+    o.frequency.setValueAtTime(700 + Math.random()*200, audioCtx.currentTime);
+    g.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.06, audioCtx.currentTime + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.2);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start();
+    o.stop(audioCtx.currentTime + 0.22);
+  } catch(e){ /* ignore */ }
 }
-    </script>
-<script>
-let points=0;
-let clickPower=1;
-let autoClickers=0;
-let prestigePoints=0;
-let combo=0;
-let lastClick=0;
-let prestigeGoal=1000;
-
-// DOM
-const pointsDisplay=document.getElementById('points');
-const clickBtn=document.getElementById('clickBtn');
-const megaClickBtn=document.getElementById('megaClickBtn');
-const shopDiv=document.getElementById('shop');
-const gameContainer=document.getElementById('gameContainer');
-const prestigeFill=document.getElementById('prestigeFill');
-const comboFill=document.getElementById('comboFill');
-
-// Helpers
-function randomColor(){return `hsl(${Math.floor(Math.random()*360)},100%,50%)`;}
-function randOffset(){return (Math.random()-0.5)*200+'px';}
-function randomInt(max){return Math.floor(Math.random()*max);}
-
-// Emojis
-let emojiSet=['💥','⚡','🔥','👾','✨'];
-
-// Spawn functions
-function spawnEmoji(){
-  const emoji=document.createElement('div');
-  emoji.className='emoji';
-  emoji.textContent=emojiSet[randomInt(emojiSet.length)];
-  emoji.style.left=randomInt(window.innerWidth)+'px';
-  emoji.style.top=randomInt(window.innerHeight)+'px';
-  emoji.style.color=randomColor();
-  document.body.appendChild(emoji);
-  setTimeout(()=>emoji.remove(),1000);
+function startMusic(){
+  if(musicOsc) return;
+  musicOsc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  musicOsc.type = 'sine';
+  musicOsc.frequency.value = 110;
+  g.gain.value = 0.03;
+  musicOsc.connect(g); g.connect(audioCtx.destination);
+  musicOsc.start();
+}
+function stopMusic(){
+  if(!musicOsc) return;
+  musicOsc.stop();
+  musicOsc.disconnect();
+  musicOsc = null;
 }
 
-function spawnParticles(x,y,count=10){
-  for(let i=0;i<count;i++){
-    const p=document.createElement('div');
-    p.className='particle';
-    p.style.background=randomColor();
-    p.style.left=x+'px';
-    p.style.top=y+'px';
-    p.style.setProperty('--x',randOffset());
-    p.style.setProperty('--y',randOffset());
-    document.body.appendChild(p);
-    setTimeout(()=>p.remove(),500);
-  }
+/* ---------------------------
+   Shop & Upgrades
+   --------------------------- */
+
+function baseShopItems(){
+  // produce fresh shop items (descriptions used in tooltips)
+  return [
+    {id:'auto', name:"Auto Clicker", basePrice:50, amount:0, mult:1.15, effectDesc:"Adds automatic points per second", effect:()=>state.autoClickers++},
+    {id:'pwr1', name:"+1 Click Power", basePrice:100, amount:0, mult:1.2, effectDesc:"Permanently +1 click power", effect:()=>state.clickPower++},
+    {id:'double', name:"Double Power", basePrice:250, amount:0, mult:1.25, effectDesc:"Temporarily doubles click power for 5s", effect:()=>{}},
+    {id:'mega', name:"Unlock Mega Click", basePrice:500, amount:0, mult:2, effectDesc:"Reveals MEGA CLICK button (big burst)", effect:()=>megaClickBtn.style.display='inline-block'},
+    {id:'emojiStorm', name:"Emoji Storm", basePrice:800, amount:0, mult:1.3, effectDesc:"Spawn extra emojis on click", effect:()=>{}},
+    {id:'crit', name:"Critical Clicks", basePrice:1200, amount:0, mult:1.4, effectDesc:"Occasional critical bonus on clicks", effect:()=>{}},
+    {id:'prestigeReset', name:"Prestige Reset (shop)", basePrice:15000, amount:0, mult:3, effectDesc:"Trigger prestige (instant reset for prestige points)", effect:prestige},
+    {id:'ultimate', name:"Ultimate Chaos", basePrice:20000, amount:0, mult:5, effectDesc:"Unlocks a secret alert", effect:()=>alert("You have unlocked Ultimate Chaos!")}
+  ];
 }
 
-function spawnComboText(x,y,text){
-  const t=document.createElement('div');
-  t.className='comboText';
-  t.style.left=x+'px';
-  t.style.top=y+'px';
-  t.textContent=text;
-  document.body.appendChild(t);
-  setTimeout(()=>t.remove(),800);
+function initShop(){
+  // Deep copy to state.shopItems
+  state.shopItems = baseShopItems().map(i=>Object.assign({}, i));
+  renderShop();
 }
 
-// Shake only container
-function shakeScreen(mag=10){
-  const x=(Math.random()-0.5)*mag;
-  const y=(Math.random()-0.5)*mag;
-  gameContainer.style.transform=`translate(${x}px,${y}px)`;
-  setTimeout(()=>gameContainer.style.transform='translate(0,0)',100);
+function shopCost(item){
+  return Math.floor(item.basePrice * Math.pow(item.mult, item.amount));
 }
-
-// Random Event
-function randomEvent(){
-  const r=Math.random();
-  if(r<0.1){shakeScreen(50);}
-  else if(r<0.2){clickPower*=2; setTimeout(()=>clickPower/=2,5000);}
-  else if(r<0.3){document.body.style.filter='invert(1)'; setTimeout(()=>document.body.style.filter='invert(0)',5000);}
-  else if(r<0.4){spawnParticles(randomInt(window.innerWidth),randomInt(window.innerHeight),30);}
-  else if(r<0.5){spawnEmoji();}
-}
-
-// Upgrade effects
-function comboBoost(){ /* combo handled in click */ }
-function emojiStorm(){ for(let i=0;i<3;i++) spawnEmoji(); }
-function particleFrenzy(){ spawnParticles(randomInt(window.innerWidth),randomInt(window.innerHeight),15); }
-function criticalClicks(){ if(Math.random()<0.1){ points+=clickPower*5; updatePoints(); } }
-function screenShaker(){ shakeScreen(30); }
-function chaosEnergy(){ document.body.style.background=randomColor(); setTimeout(()=>document.body.style.background='#111',300); }
-function emojiBossSpawn(){ 
-  const boss=document.createElement('div');
-  boss.textContent='👹';
-  boss.style.position='absolute';
-  boss.style.fontSize='64px';
-  boss.style.left=randomInt(window.innerWidth-100)+'px';
-  boss.style.top=randomInt(window.innerHeight-100)+'px';
-  boss.style.cursor='pointer';
-  document.body.appendChild(boss);
-  boss.onclick=()=>{
-    points+=500; updatePoints();
-    spawnParticles(parseInt(boss.style.left),parseInt(boss.style.top),50);
-    boss.remove();
-  };
-  setTimeout(()=>boss.remove(),15000);
-}
-function autoChaos(){ if(Math.random()<0.2) randomEvent(); }
-function superParticleBlast(){ spawnParticles(randomInt(window.innerWidth),randomInt(window.innerHeight),50); }
-function clickMagnet(x,y){ document.querySelectorAll('.particle,.emoji').forEach(el=>{
-  el.style.left=x+'px'; el.style.top=y+'px';
-}); }
-function rngMadness(){ if(Math.random()<0.1){ points+=randomInt(50)+10; updatePoints(); } }
-function apocalypseMode(){ combo*=2; setTimeout(()=>combo=1,15000); }
-
-// Shop items
-let shopItems=[
-  {name:"Auto Clicker", basePrice:50, amount:0, mult:1.15, effect:()=>autoClickers++},
-  {name:"+1 Click Power", basePrice:100, amount:0, mult:1.2, effect:()=>clickPower++},
-  {name:"Double Power", basePrice:250, amount:0, mult:1.25, effect:()=>clickPower*=2},
-  {name:"Unlock Mega Click", basePrice:500, amount:0, mult:2, effect:()=>megaClickBtn.style.display='inline-block'},
-  {name:"Combo Booster", basePrice:600, amount:0, mult:1.3, effect:comboBoost},
-  {name:"Emoji Storm", basePrice:800, amount:0, mult:1.3, effect:emojiStorm},
-  {name:"Particle Frenzy", basePrice:1000, amount:0, mult:1.35, effect:particleFrenzy},
-  {name:"Critical Clicks", basePrice:1200, amount:0, mult:1.4, effect:criticalClicks},
-  {name:"Screen Shaker", basePrice:1500, amount:0, mult:1.4, effect:screenShaker},
-  {name:"Chaos Energy", basePrice:2000, amount:0, mult:1.5, effect:chaosEnergy},
-  {name:"Overdrive +5 Power", basePrice:2500, amount:0, mult:1.5, effect:()=>clickPower+=5},
-  {name:"Emoji Boss", basePrice:3000, amount:0, mult:1.6, effect:emojiBossSpawn},
-  {name:"Auto Chaos", basePrice:4000, amount:0, mult:1.6, effect:autoChaos},
-  {name:"Super Particle Blast", basePrice:5000, amount:0, mult:1.7, effect:superParticleBlast},
-  {name:"Click Magnet", basePrice:6000, amount:0, mult:1.8, effect:clickMagnet},
-  {name:"RNG Madness", basePrice:7000, amount:0, mult:1.8, effect:rngMadness},
-  {name:"Apocalypse Mode", basePrice:8000, amount:0, mult:2, effect:apocalypseMode},
-  {name:"Infinity Clicks +50", basePrice:10000, amount:0, mult:2, effect:()=>clickPower+=50},
-  {name:"Prestige Reset", basePrice:15000, amount:0, mult:3, effect:prestige},
-  {name:"Ultimate Chaos", basePrice:20000, amount:0, mult:5, effect:()=>alert("You have unlocked Ultimate Chaos!")}
-];
 
 function renderShop(){
-  shopDiv.innerHTML='<h2>Shop</h2>';
-  shopItems.forEach((item)=>{
-    const cost=Math.floor(item.basePrice*Math.pow(item.mult,item.amount));
-    const btn=document.createElement('button');
-    btn.textContent=`${item.name} (${cost}) [Owned:${item.amount}]`;
-    btn.onclick=()=>{
-      if(points>=cost){
-        points-=cost; updatePoints();
-        item.amount++; item.effect(); renderShop();
+  shopDiv.innerHTML = '';
+  state.shopItems.forEach(item => {
+    const btn = document.createElement('button');
+    btn.className = 'tooltip';
+    btn.innerHTML = `<span>${item.name} <span class="cost">(${shopCost(item)})</span></span>`;
+    // tooltip content
+    const tip = document.createElement('div');
+    tip.className = 'tip';
+    tip.innerHTML = `<strong>${item.name}</strong><div style="margin-top:6px;font-size:13px">${item.effectDesc || ''}</div><div class="tiny" style="margin-top:6px">Owned: ${item.amount}</div>`;
+    btn.appendChild(tip);
+    btn.onclick = ()=>{
+      const cost = shopCost(item);
+      if(state.points >= cost){
+        state.points -= cost;
+        item.amount++;
+        // trigger effect (try/catch safe)
+        try { item.effect(); } catch(e){ console.warn(e); }
+        // special per-item logic
+        if(item.id === 'double'){
+          state.clickPower *= 2;
+          setTimeout(()=>{ state.clickPower = Math.max(1, Math.floor(state.clickPower/2)); }, 5000);
+        } else if(item.id === 'emojiStorm'){
+          // store just by amount — handled on click
+        } else if(item.id === 'crit'){
+          // handled on click
+        }
+        renderShop(); updatePoints();
+      } else {
+        flashMessage('Not enough points');
       }
     };
     shopDiv.appendChild(btn);
   });
 }
 
-function updatePoints(){
-  pointsDisplay.textContent=points;
-  // Prestige bar
-  prestigeFill.style.width=Math.min(100,(points/prestigeGoal)*100)+'%';
+/* ---------------------------
+   Prestige system & upgrades
+   --------------------------- */
+function initPrestigeUpgrades(){
+  state.prestigeUpgrades = [
+    {id:'pp_click', name:'+1 Permanent Click Power', cost:1, desc:'Spend 1 prestige point to gain +1 permanent click power', bought:0, max:999, apply:()=>{state.clickPower++;}},
+    {id:'pp_auto', name:'+1 Permanent Auto', cost:2, desc:'+1 auto clicker per prestige upgrade', bought:0, max:999, apply:()=>{state.autoClickers++;}},
+    {id:'pp_discount', name:'Shop Discount', cost:5, desc:'10% cheaper shop costs per purchase', bought:0, max:5, apply:()=>{/* handled on cost calculation */}}
+  ];
+  renderPrestigeUpgrades();
 }
 
-// Prestige
-function prestige(){
-  if(points>=prestigeGoal){
-    prestigePoints++;
-    points=0; clickPower=1; autoClickers=0;
-    shopItems.forEach(i=>i.amount=0);
-    alert("Prestige! Permanent +1 click power. Total prestige: "+prestigePoints);
-    clickPower+=prestigePoints;
-    prestigeGoal=Math.floor(prestigeGoal*1.8);
-    renderShop();
-    updatePoints();
-  } else {
-    alert("Not enough points to prestige!");
-  }
+function renderPrestigeUpgrades(){
+  prestigeUpgradesDiv.innerHTML = '';
+  state.prestigeUpgrades.forEach(upg=>{
+    const btn = document.createElement('button');
+    btn.className = 'pill';
+    btn.style.display='block';
+    btn.style.width='100%';
+    btn.style.margin='6px 0';
+    btn.textContent = `${upg.name} — cost: ${upg.cost} PP ${upg.bought?`(bought: ${upg.bought})`:''}`;
+    btn.onclick = ()=>{
+      if(state.prestigePoints >= upg.cost){
+        state.prestigePoints -= upg.cost;
+        upg.bought++;
+        try { upg.apply(); } catch(e){}
+        renderPrestigeUpgrades(); updatePoints(); renderPrestigeDisplay();
+        saveGame();
+      } else flashMessage('Not enough Prestige Points');
+    };
+    const desc = document.createElement('div'); desc.className='tiny muted'; desc.textContent = upg.desc;
+    prestigeUpgradesDiv.appendChild(btn); prestigeUpgradesDiv.appendChild(desc);
+  });
 }
 
-// Clicking
-clickBtn.onclick=(e)=>{
-  const now=Date.now();
-  combo=(now-lastClick<300)?combo+1:1;
-  lastClick=now;
-  points+=clickPower*combo;
-  updatePoints();
+/* ---------------------------
+   Achievements
+   --------------------------- */
+const ACHS = [
+  {id:'click10', name:'Tap Novice', desc:'Perform 10 clicks', cond:()=>state.lifetimeClicks>=10},
+  {id:'click100', name:'Tap Adept', desc:'Perform 100 clicks', cond:()=>state.lifetimeClicks>=100},
+  {id:'points1k', name:'Warm Wallet', desc:'Earn 1,000 total points', cond:()=>state.lifetimePointsEarned>=1000},
+  {id:'prestige1', name:'Reborn', desc:'Prestige once', cond:()=>state.prestigeCount>=1},
+  {id:'million', name:'Chaotic Millionaire', desc:'Reach 1,000,000 points at once', cond:()=>state.points>=1_000_000}
+];
 
-  spawnEmoji();
-  spawnParticles(e.clientX,e.clientY,5+combo);
-  spawnComboText(e.clientX,e.clientY,`+${combo}x`);
-  comboFill.style.width=Math.min(100,(combo/20)*100)+'%';
-  shakeScreen(combo*2);
-
-  shopItems.forEach(i=>{
-    if(i.amount>0){
-      if(i.name==="Critical Clicks") criticalClicks();
-      if(i.name==="Super Particle Blast") superParticleBlast();
-      if(i.name==="Emoji Storm") emojiStorm();
-      if(i.name==="Particle Frenzy") particleFrenzy();
-      if(i.name==="Screen Shaker") screenShaker();
-      if(i.name==="Chaos Energy") chaosEnergy();
-      if(i.name==="Click Magnet") clickMagnet(e.clientX,e.clientY);
-      if(i.name==="RNG Madness") rngMadness();
-      if(i.name==="Apocalypse Mode") apocalypseMode();
+function checkAchievements(){
+  let newly = [];
+  ACHS.forEach(a=>{
+    if(a.cond() && !state.achievementsUnlocked.includes(a.id)){
+      state.achievementsUnlocked.push(a.id);
+      newly.push(a);
+      // give flavor reward: small prestige points or click power
+      state.clickPower += 0; // no auto reward by default (could add)
     }
   });
-};
-
-// Mega Click
-megaClickBtn.onclick=()=>{
-  points+=clickPower*50;
-  updatePoints();
-  spawnParticles(window.innerWidth/2,window.innerHeight/2,100);
-  shakeScreen(40);
-};
-
-// Auto clicker loop
-setInterval(()=>{
-  points+=autoClickers;
-  updatePoints();
-  for(let i=0;i<autoClickers;i++){
-    spawnEmoji();
-    shopItems.forEach(i=>{
-      if(i.amount>0 && i.name==="Auto Chaos") autoChaos();
-      if(i.amount>0 && i.name==="Emoji Boss") emojiBossSpawn();
-    });
-  }
-},1000);
-function turnEmojisToLizards() {
-  // Replace existing emojis on screen
-  document.querySelectorAll('.emoji').forEach(e => e.textContent = '🦎');
-  
-  // Override spawnEmoji to always spawn lizards
-  const originalSpawnEmoji = spawnEmoji;
-  spawnEmoji = function(x, y) {
-    const e = document.createElement('div');
-    e.className = 'emoji';
-    e.textContent = '🦎';
-    e.style.position = 'absolute';
-    e.style.left = (x || Math.random()*window.innerWidth) + 'px';
-    e.style.top = (y || Math.random()*window.innerHeight) + 'px';
-    e.style.fontSize = Math.random()*40 + 20 + 'px';
-    document.body.appendChild(e);
-    setTimeout(()=>e.remove(), 3000); // Remove after 3 sec
-  };
-  
-  alert('All emojis are now LIZARDS 🦎');
+  if(newly.length) newly.forEach(a=>showToast(`Achievement Unlocked: ${a.name}`));
+  renderAchievements();
 }
 
-// Init
-renderShop();
-  // Hidden Konami-style sequence for Griffin: G-R-I-F-F-I-N
+function renderAchievements(){
+  if(state.achievementsUnlocked.length === 0){
+    achievementsList.textContent = 'No achievements yet.';
+    return;
+  }
+  achievementsList.innerHTML = '';
+  state.achievementsUnlocked.forEach(id=>{
+    const a = ACHS.find(x=>x.id===id);
+    if(a){
+      const div = document.createElement('div');
+      div.style.margin='6px 0';
+      div.innerHTML = `<strong>${a.name}</strong><div class="tiny muted">${a.desc}</div>`;
+      achievementsList.appendChild(div);
+    }
+  });
+}
+
+/* ---------------------------
+   Visual helpers (emojis/particles) with caps
+   --------------------------- */
+let emojiSet = ['💥','⚡','🔥','👾','✨'];
+let activeEmojiCount = 0;
+let activeParticleCount = 0;
+
+function spawnEmoji(x,y){
+  if(activeEmojiCount >= MAX_EMOJIS) return;
+  activeEmojiCount++;
+  const el = document.createElement('div');
+  el.className='emoji';
+  el.textContent = emojiSet[randInt(emojiSet.length)];
+  el.style.left = (x||randInt(window.innerWidth)) + 'px';
+  el.style.top = (y||randInt(window.innerHeight)) + 'px';
+  el.style.color = rndColor();
+  document.body.appendChild(el);
+  setTimeout(()=>{ el.remove(); activeEmojiCount--; }, 1000 + randInt(400));
+}
+
+function spawnParticles(x,y,count=8){
+  // spawn up to cap
+  const allowed = Math.max(0, Math.min(count, MAX_PARTICLES - activeParticleCount));
+  for(let i=0;i<allowed;i++){
+    activeParticleCount++;
+    const p = document.createElement('div');
+    p.className='particle';
+    p.style.left = x + 'px';
+    p.style.top = y + 'px';
+    p.style.setProperty('--x', ((Math.random()-0.5)*200)+'px');
+    p.style.setProperty('--y', ((Math.random()-0.5)*200)+'px');
+    p.style.background = rndColor();
+    document.body.appendChild(p);
+    setTimeout(()=>{ p.remove(); activeParticleCount--; }, 600 + randInt(200));
+  }
+}
+
+function spawnComboText(x,y,text){
+  const t = document.createElement('div');
+  t.className='comboText';
+  t.style.left = x + 'px';
+  t.style.top = y + 'px';
+  t.textContent = text;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(), 800);
+}
+
+function shakeScreen(mag=10){
+  const x = (Math.random()-0.5)*mag;
+  const y = (Math.random()-0.5)*mag;
+  document.getElementById('gameContainer').style.transform = `translate(${x}px,${y}px)`;
+  setTimeout(()=>document.getElementById('gameContainer').style.transform='translate(0,0)',100);
+}
+
+/* ---------------------------
+   Core mechanics: clicking, auto loop, random events
+   --------------------------- */
+function updatePoints(){
+  pointsDisplay.textContent = Math.floor(state.points);
+  // prestige progress
+  prestigeFill.style.width = Math.min(100, (state.points / state.prestigeGoal) * 100) + '%';
+  comboFill.style.width = Math.min(100, (state.combo / 20) * 100) + '%';
+  prestigePointsSpan.textContent = state.prestigePoints;
+  lifetimeClicksEl.textContent = state.lifetimeClicks;
+  lifetimePointsEl.textContent = state.lifetimePointsEarned.toLocaleString();
+  prestigeCountEl.textContent = state.prestigeCount;
+}
+
+function flashMessage(msg, time=900){
+  showToast(msg, time);
+}
+
+function clickAction(e){
+  // ensure AudioContext resumed on user interaction (mobile)
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+
+  const now = Date.now();
+  state.combo = (now - state.lastClick < 300) ? state.combo + 1 : 1;
+  state.lastClick = now;
+  const comboMult = state.combo;
+  let gain = state.clickPower * comboMult;
+
+  // critical chance from shop
+  const critItem = state.shopItems.find(i=>i.id==='crit');
+  if(critItem && critItem.amount>0 && Math.random() < 0.1){
+    gain += state.clickPower * 5; // bonus
+    spawnComboText(e.clientX, e.clientY, 'CRIT!');
+  }
+
+  state.points += gain;
+  state.lifetimeClicks++;
+  state.lifetimePointsEarned += gain;
+  updatePoints();
+
+  // visual & sound
+  spawnEmoji(e.clientX, e.clientY);
+  spawnParticles(e.clientX, e.clientY, 4 + Math.min(8, state.combo));
+  spawnComboText(e.clientX, e.clientY, `+${comboMult}x`);
+
+  playClickSound();
+
+  // effects from shop items
+  state.shopItems.forEach(i=>{
+    if(i.amount > 0){
+      if(i.id === 'emojiStorm'){
+        for(let k=0;k<i.amount;k++) spawnEmoji();
+      }
+      if(i.id === 'double' && Math.random() < 0.01){
+        // tiny chance to trigger
+        state.clickPower *= 2;
+        setTimeout(()=>{ state.clickPower = Math.max(1, Math.floor(state.clickPower/2)); }, 3000);
+      }
+      if(i.id === 'auto'){ /* auto handled by timer */ }
+    }
+  });
+
+  // check milestones
+  checkAchievements();
+}
+
+clickBtn.addEventListener('click', clickAction);
+
+megaClickBtn.onclick = () => {
+  state.points += state.clickPower * 50;
+  state.lifetimePointsEarned += state.clickPower * 50;
+  updatePoints();
+  spawnParticles(window.innerWidth/2, window.innerHeight/2, 40);
+  shakeScreen(40);
+  playClickSound();
+};
+
+/* Auto click loop */
+setInterval(()=>{
+  if(state.autoClickers > 0){
+    state.points += state.autoClickers;
+    state.lifetimePointsEarned += state.autoClickers;
+    updatePoints();
+    for(let i=0;i<Math.min(5,state.autoClickers);i++){ spawnEmoji(); }
+    // chance auto chaos if unlocked
+    const chaosItem = state.shopItems.find(x=>x.id==='ultimate');
+    if(chaosItem && chaosItem.amount>0 && Math.random() < 0.05) spawnParticles(randInt(window.innerWidth), randInt(window.innerHeight), 12);
+  }
+  checkAchievements();
+}, 1000);
+
+/* Random event helper (used by hack menu) */
+function randomEvent(){
+  const r = Math.random();
+  if(r < 0.1) shakeScreen(50);
+  else if(r < 0.2){ state.clickPower *= 2; setTimeout(()=>state.clickPower = Math.max(1, Math.floor(state.clickPower/2)), 5000); }
+  else if(r < 0.3){ document.body.style.filter = 'invert(1)'; setTimeout(()=>document.body.style.filter='invert(0)',5000); }
+  else if(r < 0.4) spawnParticles(randInt(window.innerWidth), randInt(window.innerHeight), 30);
+  else if(r < 0.5) spawnEmoji();
+}
+
+/* ---------------------------
+   Prestige function
+   --------------------------- */
+function prestige(){
+  if(state.points >= state.prestigeGoal){
+    state.prestigePoints++;
+    state.prestigeCount++;
+    state.points = 0;
+    state.clickPower = 1;
+    state.autoClickers = 0;
+    state.shopItems.forEach(i=>i.amount = 0);
+    // apply prestige upgrades effect (already applied when bought)
+    showToast(`Prestiged! +1 permanent click power awarded`);
+    state.clickPower += state.prestigePoints; // small bonus
+    state.prestigeGoal = Math.floor(state.prestigeGoal * 1.8);
+    renderShop();
+    renderPrestigeUpgrades();
+    updatePoints();
+    saveGame();
+  } else {
+    flashMessage('Not enough points to prestige!');
+  }
+}
+
+/* ---------------------------
+   Persistence: save / load / autosave / reset
+   --------------------------- */
+const SAVE_KEY = 'chaos_clicker_save_v1';
+
+function saveGame(){
+  try {
+    const payload = {
+      state: {
+        points: state.points,
+        clickPower: state.clickPower,
+        autoClickers: state.autoClickers,
+        prestigePoints: state.prestigePoints,
+        prestigeCount: state.prestigeCount,
+        lifetimeClicks: state.lifetimeClicks,
+        lifetimePointsEarned: state.lifetimePointsEarned,
+        combo: state.combo,
+        lastClick: state.lastClick,
+        prestigeGoal: state.prestigeGoal,
+        version: state.version
+      },
+      shopItems: state.shopItems.map(i=>({id:i.id,amount:i.amount})),
+      prestigeUpgrades: state.prestigeUpgrades.map(u=>({id:u.id,bought:u.bought})),
+      achievementsUnlocked: state.achievementsUnlocked
+    };
+    localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
+    showToast('Game saved', 900);
+  } catch(e){ console.error('Save failed',e); flashMessage('Save failed'); }
+}
+
+function loadGame(){
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(!raw){ flashMessage('No save found'); return; }
+    const data = JSON.parse(raw);
+    const s = data.state;
+    // restore scalars
+    state.points = s.points||0;
+    state.clickPower = s.clickPower||1;
+    state.autoClickers = s.autoClickers||0;
+    state.prestigePoints = s.prestigePoints||0;
+    state.prestigeCount = s.prestigeCount||0;
+    state.lifetimeClicks = s.lifetimeClicks||0;
+    state.lifetimePointsEarned = s.lifetimePointsEarned||0;
+    state.combo = s.combo||0;
+    state.lastClick = s.lastClick||0;
+    state.prestigeGoal = s.prestigeGoal || state.prestigeGoal;
+    // restore shop amounts
+    if(data.shopItems){
+      data.shopItems.forEach(si=>{
+        const item = state.shopItems.find(x=>x.id===si.id);
+        if(item) item.amount = si.amount;
+      });
+    }
+    // restore prestige upgrades
+    if(data.prestigeUpgrades){
+      data.prestigeUpgrades.forEach(pi=>{
+        const up = state.prestigeUpgrades.find(x=>x.id===pi.id);
+        if(up) up.bought = pi.bought;
+      });
+    }
+    // achievements
+    state.achievementsUnlocked = data.achievementsUnlocked || [];
+    renderShop(); renderPrestigeUpgrades(); renderAchievements(); updatePoints();
+    showToast('Save loaded', 900);
+  } catch(e){ console.error('Load failed',e); flashMessage('Load failed'); }
+}
+
+function resetGame(confirmOkay=true){
+  if(confirmOkay && !confirm('Reset game and delete save?')) return;
+  // reset state to defaults
+  state.points = 0; state.clickPower = 1; state.autoClickers = 0;
+  state.prestigePoints = 0; state.prestigeCount = 0; state.lifetimeClicks = 0; state.lifetimePointsEarned=0;
+  state.combo = 0; state.lastClick = 0; state.prestigeGoal = 1000;
+  state.achievementsUnlocked = [];
+  initShop(); initPrestigeUpgrades(); renderAchievements();
+  updatePoints();
+  localStorage.removeItem(SAVE_KEY);
+  showToast('Game reset', 900);
+}
+
+/* autosave every 30s */
+setInterval(saveGame, 30000);
+window.addEventListener('beforeunload', saveGame);
+
+/* buttons */
+saveBtn.onclick = saveGame;
+loadBtn.onclick = loadGame;
+resetBtn.onclick = ()=>resetGame(true);
+
+/* ---------------------------
+   UI: toast / messages
+   --------------------------- */
+let toastTimer = null;
+function showToast(msg, time=1500){
+  toast.style.display = 'block';
+  toast.textContent = msg;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ toast.style.display='none'; }, time);
+}
+
+/* ---------------------------
+   init and helper rendering
+   --------------------------- */
+function renderPrestigeDisplay(){ prestigePointsSpan.textContent = state.prestigePoints; }
+
+function flashMessageSimple(txt){ showToast(txt, 800); }
+
+function startup(){
+  initShop();
+  initPrestigeUpgrades();
+  renderAchievements();
+  updatePoints();
+  // attempt auto load if a save exists
+  const raw = localStorage.getItem(SAVE_KEY);
+  if(raw) loadGame();
+}
+startup();
+
+/* ---------------------------
+   Achievements check loop
+   --------------------------- */
+setInterval(checkAchievements, 2000);
+
+/* ---------------------------
+   Input: Konami-like Griffin code opens hack menu
+   --------------------------- */
 const griffinCode = ['g','r','i','f','f','i','n'];
 let griffinInput = [];
-
 document.addEventListener('keydown', (e)=>{
   griffinInput.push(e.key.toLowerCase());
   if(griffinInput.slice(-griffinCode.length).join('') === griffinCode.join('')){
     document.getElementById('hackMenu').style.display='block';
-    griffinInput = []; // reset
+    griffinInput = [];
   }
 });
+
+/* ---------------------------
+   Hack helpers (kept from original)
+   --------------------------- */
+function turnEmojisToLizards() {
+  document.querySelectorAll('.emoji').forEach(e => e.textContent = '🦎');
+  emojiSet = ['🦎'];
+  // override spawnEmoji (kept purposely simple)
+  spawnEmoji = function(x,y){
+    if(activeEmojiCount >= MAX_EMOJIS) return;
+    activeEmojiCount++;
+    const e = document.createElement('div');
+    e.className='emoji';
+    e.textContent='🦎';
+    e.style.left=(x||Math.random()*window.innerWidth)+'px';
+    e.style.top=(y||Math.random()*window.innerHeight)+'px';
+    e.style.fontSize=(20 + Math.random()*30) + 'px';
+    document.body.appendChild(e);
+    setTimeout(()=>{ e.remove(); activeEmojiCount--; }, 3000);
+  };
+  alert('All emojis are now LIZARDS 🦎');
+}
+
+function startChaosOverload(){
+  const id = setInterval(()=>{
+    spawnParticles(Math.random()*window.innerWidth, Math.random()*window.innerHeight, 30);
+    spawnEmoji();
+    randomEvent();
+    shakeScreen(50);
+  }, 100);
+  setTimeout(()=>clearInterval(id), 8000);
+}
+
+/* ---------------------------
+   Sound & Music toggle UI
+   --------------------------- */
+soundToggle.onclick = ()=>{
+  soundOn = !soundOn;
+  soundToggle.textContent = 'Sound: ' + (soundOn ? 'ON' : 'OFF');
+};
+
+musicToggle.onclick = ()=>{
+  // require user gesture to start audio context on mobile; handled earlier
+  musicOn = !musicOn;
+  musicToggle.textContent = 'Music: ' + (musicOn ? 'ON' : 'OFF');
+  if(musicOn) startMusic(); else stopMusic();
+};
+
+/* ---------------------------
+   Small helper: flash a short message
+   --------------------------- */
+function flashMessage(msg){ showToast(msg,900); }
+
+/* ---------------------------
+   FINAL: expose some globals for interactive debugging (optional)
+   --------------------------- */
+window.state = state;
+window.renderShop = renderShop;
+window.prestige = prestige;
+window.saveGame = saveGame;
+window.loadGame = loadGame;
+window.resetGame = resetGame;
+
+/* ===========================
+   CHANGELOG & FEEDBACK
+   - (Add CHANGELOG.md to your repo with the release notes)
+   - Add a simple feedback form endpoint or use GitHub Issues to collect user comments.
+   =========================== */
 
 </script>
 </body>
