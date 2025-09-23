@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ultra Chaos Clicker — v1.1.2</title>
+<title>Ultra Chaos Clicker — v1.1.4</title>
 <meta name="theme-color" content="#0f0">
 <link rel="icon" href="icon-256.png" type="image/png">
 
@@ -54,31 +54,31 @@ h1{margin:8px 0 12px;font-size:1.4rem;}
 <div class="app">
   <div id="gameContainer" class="panel">
     <h1>Points: <span id="points">0</span></h1>
-    <button id="clickBtn" class="big-btn">CLICK!</button>
-    <button id="megaClickBtn" class="big-btn" style="display:none;background:#330033;border-color:var(--pink);color:var(--pink)">MEGA CLICK 💥</button>
+    <button id="clickBtn" class="big-btn" aria-label="Click to gain points">CLICK!</button>
+    <button id="megaClickBtn" class="big-btn" style="display:none;background:#330033;border-color:var(--pink);color:var(--pink)" aria-label="Mega click for bonus points">MEGA CLICK 💥</button>
     <div id="bars">
       <div class="barWrap"><div class="barLabel">Prestige Progress</div><div class="bar"><div id="prestigeFill" class="fill"></div></div></div>
       <div class="barWrap"><div class="barLabel">Combo</div><div class="bar"><div id="comboFill" class="fill"></div></div></div>
     </div>
     <div id="controls" class="muted">
-      <button id="saveBtn" class="pill tiny">Save</button>
-      <button id="loadBtn" class="pill tiny">Load</button>
-      <button id="resetBtn" class="pill tiny">Reset</button>
+      <button id="saveBtn" class="pill tiny" aria-label="Save game">Save</button>
+      <button id="loadBtn" class="pill tiny" aria-label="Load game">Load</button>
+      <button id="resetBtn" class="pill tiny" aria-label="Reset game">Reset</button>
     </div>
     <div style="margin-top:12px" class="tiny">Tip: press letter sequence G R I F F I N to open secret menu.</div>
   </div>
 
   <div class="side">
     <div class="panel" id="shopPanel"><h2>Shop</h2><div id="shop"></div></div>
-    <div class="panel" id="prestigePanel"><h2>Prestige</h2><div class="tiny">Prestige Points: <span id="prestigePoints">0</span></div><div class="divider"></div><div id="prestigeUpgrades"></div></div>
+    <div class="panel" id="prestigePanel"><h2>Prestige</h2><div class="tiny">Prestige Points: <span id="prestigePoints">0</span></div><div class="divider"></div><button id="prestigeBtn" class="pill" aria-label="Prestige to reset progress for prestige points">Prestige</button><div id="prestigeUpgrades"></div></div>
     <div class="panel" id="statsPanel"><h2>Stats</h2>
       <div class="row"><div class="stat">Lifetime Clicks:</div><div id="lifetimeClicks" class="muted" style="margin-left:auto">0</div></div>
       <div class="row"><div class="stat">Total Points Earned:</div><div id="lifetimePoints" class="muted" style="margin-left:auto">0</div></div>
       <div class="row"><div class="stat">Prestiges:</div><div id="prestigeCount" class="muted" style="margin-left:auto">0</div></div>
       <div class="divider"></div>
       <div class="row">
-        <button id="soundToggle" class="pill tiny">Sound: ON</button>
-        <button id="musicToggle" class="pill tiny">Music: OFF</button>
+        <button id="soundToggle" class="pill tiny" aria-label="Toggle sound">Sound: ON</button>
+        <button id="musicToggle" class="pill tiny" aria-label="Toggle music">Music: OFF</button>
       </div>
     </div>
     <div class="panel" id="achPanel"><h2>Achievements</h2><div id="achievementsList" class="tiny">No achievements yet.</div></div>
@@ -90,125 +90,267 @@ h1{margin:8px 0 12px;font-size:1.4rem;}
 <!-- Hack Menu -->
 <div id="hackMenu" aria-hidden="true">
   <h2>Griffin God Mode Menu</h2>
-  <button onclick="turnEmojisToLizards()">ALL LIZARDS MODE</button>
-  <button onclick="state.points+=1000000; updatePoints();">+1,000,000 Points</button>
-  <button onclick="state.clickPower+=500; updatePoints();">+500 Click Power</button>
-  <button onclick="state.autoClickers+=100; updatePoints();">+100 Auto Clickers</button>
-  <button onclick="state.points=9999999; state.clickPower=9999; state.autoClickers=999; updatePoints();">MAX EVERYTHING</button>
-  <button onclick="state.combo=9999; comboFill.style.width='100%';">INFINITE COMBO</button>
-  <button onclick="state.points=state.prestigeGoal; prestige();">INSTANT PRESTIGE</button>
-  <button onclick="startChaosOverload()">CHAOS OVERLOAD</button>
-  <button onclick="state.shopItems.forEach(i=>{i.amount=999; i.effect();}); renderShop();">UNLOCK ALL UPGRADES</button>
+  <button onclick="turnEmojisToLizards()" aria-label="Turn emojis to lizards">ALL LIZARDS MODE</button>
+  <button onclick="state.points+=1000000; updatePoints();" aria-label="Add 1 million points">+1,000,000 Points</button>
+  <button onclick="state.clickPower+=500; updatePoints();" aria-label="Add 500 click power">+500 Click Power</button>
+  <button onclick="state.autoClickers+=100; updatePoints();" aria-label="Add 100 auto clickers">+100 Auto Clickers</button>
+  <button onclick="state.points=9999999; state.clickPower=9999; state.autoClickers=999; updatePoints();" aria-label="Max out all stats">MAX EVERYTHING</button>
+  <button onclick="state.combo=9999; comboFill.style.width='100%';" aria-label="Set infinite combo">INFINITE COMBO</button>
+  <button onclick="state.points=state.prestigeGoal; prestige();" aria-label="Instant prestige">INSTANT PRESTIGE</button>
+  <button onclick="startChaosOverload()" aria-label="Start chaos overload">CHAOS OVERLOAD</button>
+  <button onclick="state.shopItems.forEach(i=>{i.amount=999; i.effect();}); renderShop();" aria-label="Unlock all upgrades">UNLOCK ALL UPGRADES</button>
   <br>
-  <button onclick="closeHackMenu()">Close Menu</button>
+  <button onclick="closeHackMenu()" aria-label="Close hack menu">Close Menu</button>
 </div>
 
 <script>
+'use strict';
+
 // ========================
 // Chaos Clicker v1.1.2 FULL FIXED
-
 const SAVE_KEY = 'ultraChaosClicker_v1_1_2';
-let state = {points:0,lifetimeClicks:0,lifetimePoints:0,clickPower:1,combo:0,comboTimer:null,comboMultiplier:1,prestigePoints:0,prestigeGoal:500,prestigeCount:0,autoClickers:0,shopItems:[],achievements:[],sound:true,music:false};
+let state = {
+  points: 0,
+  lifetimeClicks: 0,
+  lifetimePoints: 0,
+  clickPower: 1,
+  combo: 0,
+  comboTimer: null,
+  comboMultiplier: 1,
+  prestigePoints: 0,
+  prestigeGoal: 500,
+  prestigeCount: 0,
+  autoClickers: 0,
+  shopItems: [],
+  achievements: [],
+  sound: true,
+  music: false,
+  version: '1.1.2'
+};
+let lastShopRender = 0;
 
 // ========================
 // SHOP ITEMS
-function baseShopItems(){
+function baseShopItems() {
   return [
-    {id:'auto', name:"Auto Clicker", basePrice:50, amount:0, mult:1.15, effectDesc:"Adds automatic points per second", effect:()=>{}},
-    {id:'click1', name:"+1 Click Power", basePrice:100, amount:0, mult:1.2, effectDesc:"Permanently +1 click power", effect:()=>state.clickPower++},
-    {id:'click5', name:"+5 Click Power", basePrice:400, amount:0, mult:1.25, effectDesc:"Permanently +5 click power", effect:()=>state.clickPower+=5},
-    {id:'comboBoost', name:"Combo Booster", basePrice:300, amount:0, mult:1.2, effectDesc:"Increases combo multiplier", effect:()=>state.comboMultiplier+=0.1},
-    {id:'megaClick', name:"Mega Click Unlock", basePrice:1000, amount:0, mult:1.3, effectDesc:"Unlocks MEGA CLICK button", effect:()=>document.getElementById('megaClickBtn').style.display='block'},
-    {id:'prestigeBoost', name:"Prestige Helper", basePrice:2000, amount:0, mult:1.3, effectDesc:"Reduces prestige goal by 10%", effect:()=>state.prestigeGoal=Math.floor(state.prestigeGoal*0.9)}
+    {id: 'auto', name: 'Auto Clicker', basePrice: 50, amount: 0, mult: 1.15, effectDesc: 'Adds automatic points per second', effect: () => state.autoClickers++},
+    {id: 'click1', name: '+1 Click Power', basePrice: 100, amount: 0, mult: 1.2, effectDesc: 'Permanently +1 click power', effect: () => state.clickPower++},
+    {id: 'click5', name: '+5 Click Power', basePrice: 400, amount: 0, mult: 1.25, effectDesc: 'Permanently +5 click power', effect: () => state.clickPower += 5},
+    {id: 'comboBoost', name: 'Combo Booster', basePrice: 300, amount: 0, mult: 1.2, effectDesc: 'Increases combo multiplier', effect: () => state.comboMultiplier += 0.1},
+    {id: 'megaClick', name: 'Mega Click Unlock', basePrice: 1000, amount: 0, mult: 1.3, effectDesc: 'Unlocks MEGA CLICK button', effect: () => document.getElementById('megaClickBtn').style.display = 'block'},
+    {id: 'prestigeBoost', name: 'Prestige Helper', basePrice: 2000, amount: 0, mult: 1.3, effectDesc: 'Reduces prestige goal by 10%', effect: () => state.prestigeGoal = Math.floor(state.prestigeGoal * 0.9)}
   ];
 }
 
-function initShop(){
-  state.shopItems = baseShopItems().map(i=>({...i}));
+function initShop() {
+  state.shopItems = baseShopItems().map(i => ({...i}));
 }
 
-function shopCost(item){
+function shopCost(item) {
   return Math.floor(item.basePrice * Math.pow(item.mult, item.amount));
 }
 
-function buyItem(id){
-  const item = state.shopItems.find(x=>x.id===id);
-  if(!item) return;
+function buyItem(id) {
+  const item = state.shopItems.find(x => x.id === id);
+  if (!item) return;
   const cost = shopCost(item);
-  if(state.points>=cost){
-    state.points-=cost;
+  if (state.points >= cost) {
+    state.points -= cost;
     item.amount++;
-    if(item.effect) item.effect();
+    if (item.effect) item.effect();
     renderShop();
     updatePoints();
     showToast(`Bought ${item.name}!`);
   } else {
-    showToast(`Not enough points`);
+    showToast('Not enough points');
   }
 }
 
-function renderShop(){
+function renderShop() {
+  const now = Date.now();
+  if (now - lastShopRender < 1000) return;
+  lastShopRender = now;
   const shopDiv = document.getElementById('shop');
-  shopDiv.innerHTML='';
-  state.shopItems.forEach(item=>{
+  shopDiv.innerHTML = '';
+  state.shopItems.forEach(item => {
     const btn = document.createElement('button');
     btn.innerHTML = `${item.name} <span class="cost">${shopCost(item)}</span>`;
-    btn.className='tooltip';
+    btn.className = 'tooltip';
+    btn.setAttribute('aria-label', `Buy ${item.name} for ${shopCost(item)} points`);
     const tip = document.createElement('span');
-    tip.className='tip';
+    tip.className = 'tip';
     tip.textContent = item.effectDesc;
     btn.appendChild(tip);
-    btn.onclick=()=>buyItem(item.id);
+    btn.onclick = () => buyItem(item.id);
     shopDiv.appendChild(btn);
   });
+}
+
+// ========================
+// PRESTIGE UPGRADES
+const prestigeUpgrades = [
+  {id: 'clickBoost', name: 'Click Boost', basePrice: 10, amount: 0, mult: 1.5, effectDesc: 'Increases click power by 10', effect: () => state.clickPower += 10},
+  {id: 'autoBoost', name: 'Auto Boost', basePrice: 20, amount: 0, mult: 1.5, effectDesc: 'Increases auto clickers by 5', effect: () => state.autoClickers += 5}
+];
+
+function renderPrestigeUpgrades() {
+  const upgradesDiv = document.getElementById('prestigeUpgrades');
+  upgradesDiv.innerHTML = '';
+  prestigeUpgrades.forEach(upgrade => {
+    const btn = document.createElement('button');
+    btn.innerHTML = `${upgrade.name} <span class="cost">${Math.floor(upgrade.basePrice * Math.pow(upgrade.mult, upgrade.amount))}</span>`;
+    btn.className = 'tooltip';
+    btn.setAttribute('aria-label', `Buy ${upgrade.name} for ${Math.floor(upgrade.basePrice * Math.pow(upgrade.mult, upgrade.amount))} prestige points`);
+    const tip = document.createElement('span');
+    tip.className = 'tip';
+    tip.textContent = upgrade.effectDesc;
+    btn.appendChild(tip);
+    btn.onclick = () => buyPrestigeUpgrade(upgrade.id);
+    upgradesDiv.appendChild(btn);
+  });
+}
+
+function buyPrestigeUpgrade(id) {
+  const upgrade = prestigeUpgrades.find(x => x.id === id);
+  if (!upgrade) return;
+  const cost = Math.floor(upgrade.basePrice * Math.pow(upgrade.mult, upgrade.amount));
+  if (state.prestigePoints >= cost) {
+    state.prestigePoints -= cost;
+    upgrade.amount++;
+    upgrade.effect();
+    renderPrestigeUpgrades();
+    updatePoints();
+    showToast(`Bought ${upgrade.name}!`);
+  } else {
+    showToast('Not enough prestige points');
+  }
+}
+
+// ========================
+// ACHIEVEMENTS
+const achievements = [
+  {id: 'click100', name: 'Click Master', desc: 'Reach 100 lifetime clicks', condition: () => state.lifetimeClicks >= 100},
+  {id: 'points1000', name: 'Point Hoarder', desc: 'Earn 1000 total points', condition: () => state.lifetimePoints >= 1000},
+  {id: 'prestige1', name: 'First Prestige', desc: 'Prestige once', condition: () => state.prestigeCount >= 1}
+];
+
+function checkAchievements() {
+  achievements.forEach(ach => {
+    if (!state.achievements.includes(ach.id) && ach.condition()) {
+      state.achievements.push(ach.id);
+      showToast(`Achievement Unlocked: ${ach.name}!`);
+    }
+  });
+  renderAchievements();
+}
+
+function renderAchievements() {
+  const achList = document.getElementById('achievementsList');
+  achList.innerHTML = state.achievements.length ? state.achievements.map(id => {
+    const ach = achievements.find(a => a.id === id);
+    return `<div>${ach.name}: ${ach.desc}</div>`;
+  }).join('') : 'No achievements yet.';
 }
 
 // ========================
 // POINTS / CLICK
 const pointsSpan = document.getElementById('points');
 const clickBtn = document.getElementById('clickBtn');
-clickBtn.onclick = ()=>{gainPoints(state.clickPower);};
 const comboFill = document.getElementById('comboFill');
 
-function gainPoints(amount){
-  state.points += amount;
-  state.lifetimePoints += amount;
+clickBtn.onclick = () => {
+  gainPoints(state.clickPower);
+  const emoji = document.createElement('div');
+  emoji.className = 'emoji';
+  emoji.textContent = state.lizardMode ? '🦎' : '✨';
+  emoji.style.left = Math.random() * clickBtn.offsetWidth + 'px';
+  emoji.style.top = Math.random() * clickBtn.offsetHeight + 'px';
+  clickBtn.appendChild(emoji);
+  setTimeout(() => emoji.remove(), 1000);
+};
+
+document.getElementById('megaClickBtn').onclick = () => {
+  gainPoints(state.clickPower * 10);
+  showToast('MEGA CLICK!');
+  const particle = document.createElement('div');
+  particle.className = 'particle';
+  particle.style.left = Math.random() * clickBtn.offsetWidth + 'px';
+  particle.style.top = Math.random() * clickBtn.offsetHeight + 'px';
+  particle.style.setProperty('--x', `${(Math.random() - 0.5) * 100}px`);
+  particle.style.setProperty('--y', `${(Math.random() - 0.5) * 100}px`);
+  clickBtn.appendChild(particle);
+  setTimeout(() => particle.remove(), 600);
+};
+
+function gainPoints(amount) {
+  const pointsGained = amount * state.comboMultiplier;
+  state.points += pointsGained;
+  state.lifetimePoints += pointsGained;
   state.lifetimeClicks++;
   handleCombo();
+  checkAchievements();
   updatePoints();
   renderShop();
+  if (state.combo > 5) {
+    const comboText = document.createElement('div');
+    comboText.className = 'comboText';
+    comboText.textContent = `${state.combo}x Combo!`;
+    comboText.style.left = Math.random() * clickBtn.offsetWidth + 'px';
+    comboText.style.top = Math.random() * clickBtn.offsetHeight + 'px';
+    clickBtn.appendChild(comboText);
+    setTimeout(() => comboText.remove(), 800);
+  }
+}
+
+function updatePoints() {
+  pointsSpan.textContent = Math.floor(state.points);
+  document.getElementById('lifetimeClicks').textContent = state.lifetimeClicks;
+  document.getElementById('lifetimePoints').textContent = Math.floor(state.lifetimePoints);
+  document.getElementById('prestigePoints').textContent = state.prestigePoints;
+  document.getElementById('prestigeCount').textContent = state.prestigeCount;
+  document.getElementById('prestigeFill').style.width = Math.min(100, (state.points / state.prestigeGoal) * 100) + '%';
 }
 
 // ========================
 // COMBO SYSTEM
-function handleCombo(){
+function handleCombo() {
   state.combo++;
-  comboFill.style.width = Math.min(100,state.combo)+'%';
+  comboFill.style.width = Math.min(100, state.combo) + '%';
   clearTimeout(state.comboTimer);
-  state.comboTimer = setTimeout(()=>state.combo=0,2000);
+  state.comboTimer = setTimeout(() => {
+    state.combo = 0;
+    comboFill.style.width = '0%';
+  }, 2000);
 }
 
 // ========================
 // PRESTIGE SYSTEM
-function prestige(){
-  if(state.points>=state.prestigeGoal){
-    state.points=0;
-    state.clickPower=1;
-    state.comboMultiplier=1;
-    state.autoClickers=0;
-    state.prestigePoints+=Math.floor(state.prestigeGoal/50);
+function prestige() {
+  if (state.points >= state.prestigeGoal) {
+    state.points = 0;
+    state.clickPower = 1;
+    state.comboMultiplier = 1;
+    state.autoClickers = 0;
+    state.prestigePoints += Math.floor(state.prestigeGoal / 50);
     state.prestigeCount++;
-    showToast(`Prestiged!`);
+    state.shopItems = baseShopItems();
+    showToast('Prestiged!');
     updatePoints();
     renderShop();
-  } else showToast('Not enough points to prestige');
+    renderPrestigeUpgrades();
+    checkAchievements();
+  } else {
+    showToast('Not enough points to prestige');
+  }
 }
+
+document.getElementById('prestigeBtn').onclick = prestige;
 
 // ========================
 // AUTO CLICKERS
-setInterval(()=>{
-  if(state.autoClickers>0) gainPoints(state.autoClickers);
-},1000);
+setInterval(() => {
+  if (state.autoClickers > 0) gainPoints(state.autoClickers);
+}, 1000);
 
 // ========================
 // SAVE / LOAD
@@ -216,60 +358,135 @@ document.getElementById('saveBtn').onclick = saveGame;
 document.getElementById('loadBtn').onclick = loadGame;
 document.getElementById('resetBtn').onclick = resetGame;
 
-function saveGame(){ localStorage.setItem(SAVE_KEY, JSON.stringify(state)); showToast('Game Saved!'); }
-function loadGame(){
-  const raw = localStorage.getItem(SAVE_KEY);
-  if(raw){
-    const data = JSON.parse(raw);
-    state = {...state, ...data};
-    initShop();
-    if(data.shopItems){
-      data.shopItems.forEach(si=>{
-        const item = state.shopItems.find(x=>x.id===si.id);
-        if(item) item.amount = si.amount;
-      });
+function saveGame() {
+  localStorage.setItem(SAVE_KEY, JSON.stringify({ ...state }));
+  showToast('Game Saved!');
+}
+
+function loadGame() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (raw) {
+      const data = JSON.parse(raw);
+      if (data.version === state.version) {
+        state = { ...state, ...data, shopItems: baseShopItems() };
+        data.shopItems?.forEach(si => {
+          const item = state.shopItems.find(x => x.id === si.id);
+          if (item) item.amount = si.amount;
+        });
+        updatePoints();
+        renderShop();
+        renderPrestigeUpgrades();
+        renderAchievements();
+        showToast('Game Loaded!');
+      } else {
+        showToast('Save version mismatch');
+      }
     }
-    updatePoints();
-    renderShop();
+  } catch (e) {
+    showToast('Failed to load game: Corrupted save');
   }
 }
-function resetGame(){
-  if(confirm('Are you sure?')) {
-    state = {points:0,lifetimeClicks:0,lifetimePoints:0,clickPower:1,combo:0,comboTimer:null,comboMultiplier:1,prestigePoints:0,prestigeGoal:500,prestigeCount:0,autoClickers:0,shopItems:[],achievements:[],sound:true,music:false};
+
+function resetGame() {
+  if (confirm('Are you sure?')) {
+    state = {
+      points: 0,
+      lifetimeClicks: 0,
+      lifetimePoints: 0,
+      clickPower: 1,
+      combo: 0,
+      comboTimer: null,
+      comboMultiplier: 1,
+      prestigePoints: 0,
+      prestigeGoal: 500,
+      prestigeCount: 0,
+      autoClickers: 0,
+      shopItems: [],
+      achievements: [],
+      sound: true,
+      music: false,
+      version: '1.1.2',
+      lizardMode: false
+    };
     initShop();
     updatePoints();
     renderShop();
+    renderPrestigeUpgrades();
+    renderAchievements();
+    showToast('Game Reset!');
   }
 }
 
 // ========================
+// SOUND / MUSIC
+document.getElementById('soundToggle').onclick = () => {
+  state.sound = !state.sound;
+  document.getElementById('soundToggle').textContent = `Sound: ${state.sound ? 'ON' : 'OFF'}`;
+  showToast(`Sound ${state.sound ? 'enabled' : 'disabled'}`);
+  // Placeholder: Add sound effect logic here, e.g., new Audio('click.wav').play();
+};
+
+document.getElementById('musicToggle').onclick = () => {
+  state.music = !state.music;
+  document.getElementById('musicToggle').textContent = `Music: ${state.music ? 'ON' : 'OFF'}`;
+  showToast(`Music ${state.music ? 'enabled' : 'disabled'}`);
+  // Placeholder: Add music logic here, e.g., new Audio('bgm.mp3').play();
+};
+
+// ========================
 // TOAST
-function showToast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg;
-  t.style.display='block';
-  setTimeout(()=>t.style.display='none',1200);
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 1200);
 }
 
 // ========================
 // HACK MENU
 const hackMenu = document.getElementById('hackMenu');
-let secretCode='';
-document.addEventListener('keydown',e=>{
+let secretCode = '';
+document.addEventListener('keydown', e => {
   secretCode += e.key.toUpperCase();
-  if(secretCode.includes('GRIFFIN')){
-    hackMenu.style.display='block';
-    secretCode='';
+  if (secretCode.includes('GRIFFIN')) {
+    hackMenu.style.display = 'block';
+    hackMenu.setAttribute('aria-hidden', 'false');
+    secretCode = '';
   }
 });
-function closeHackMenu(){ hackMenu.style.display='none'; }
-function turnEmojisToLizards(){ showToast('All emojis turned into lizards 🦎'); }
-function startChaosOverload(){ showToast('Chaos overload started! 💥'); }
+
+function closeHackMenu() {
+  hackMenu.style.display = 'none';
+  hackMenu.setAttribute('aria-hidden', 'true');
+}
+
+function turnEmojisToLizards() {
+  state.lizardMode = true;
+  showToast('All emojis turned into lizards 🦎');
+}
+
+function startChaosOverload() {
+  showToast('Chaos overload started! 💥');
+  const interval = setInterval(() => {
+    const particle = document.createElement('div');
+    particle.className = 'particle';
+    particle.style.left = Math.random() * clickBtn.offsetWidth + 'px';
+    particle.style.top = Math.random() * clickBtn.offsetHeight + 'px';
+    particle.style.setProperty('--x', `${(Math.random() - 0.5) * 100}px`);
+    particle.style.setProperty('--y', `${(Math.random() - 0.5) * 100}px`);
+    clickBtn.appendChild(particle);
+    setTimeout(() => particle.remove(), 600);
+  }, 100);
+  setTimeout(() => clearInterval(interval), 5000);
+}
 
 // ========================
 // INIT
 initShop();
 renderShop();
+renderPrestigeUpgrades();
+renderAchievements();
 updatePoints();
 </script>
 
