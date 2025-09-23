@@ -3,138 +3,98 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Ultra Chaos Clicker — v1.1.0</title>
+<title>Ultra Chaos Clicker — v1.1.1</title>
 <meta name="theme-color" content="#0f0">
 <link rel="icon" href="icon-256.png" type="image/png">
 
 <style>
-  :root{
-    --bg:#111; --panel:#1a1a1a; --accent:#0f0; --muted:#aaa; --hot:#0ff; --pink:#f0f;
-    --radius:12px;
-  }
-  html,body{height:100%;margin:0;background:var(--bg);color:var(--accent);font-family: 'Courier New', monospace;}
-  /* Layout */
-  .app {
-    min-height:100vh;
-    display:flex;
-    gap:16px;
-    padding:18px;
-    box-sizing:border-box;
-    align-items:flex-start;
-    justify-content:center;
-    flex-wrap:wrap;
-  }
-  #gameContainer{
-    width:360px;
-    max-width:95%;
-    background:var(--panel);
-    border:2px solid var(--accent);
-    border-radius:var(--radius);
-    box-shadow:0 0 20px rgba(0,255,0,0.12);
-    padding:14px;
-    text-align:center;
-    position:relative;
-    overflow:hidden;
-  }
-  h1{margin:8px 0 12px;font-size:1.4rem;}
-  .big-btn{
-    display:block;
-    width:100%;
-    padding:12px;
-    margin:8px 0;
-    background:#222;border:2px solid var(--accent);color:var(--accent);
-    border-radius:10px;font-size:1rem;cursor:pointer;
-    transition:transform .08s,box-shadow .12s,background .08s;
-  }
-  .big-btn:active{transform:translateY(1px) scale(.998);}
-  .big-btn:hover{box-shadow:0 0 10px rgba(0,255,0,0.12);background:#2a2a2a;}
+:root{
+  --bg:#111; --panel:#1a1a1a; --accent:#0f0; --muted:#aaa; --hot:#0ff; --pink:#f0f;
+  --radius:12px;
+}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--accent);font-family: 'Courier New', monospace;}
+.app {min-height:100vh; display:flex; gap:16px; padding:18px; box-sizing:border-box; align-items:flex-start; justify-content:center; flex-wrap:wrap;}
+#gameContainer{width:360px; max-width:95%; background:var(--panel); border:2px solid var(--accent); border-radius:var(--radius); box-shadow:0 0 20px rgba(0,255,0,0.12); padding:14px; text-align:center; position:relative; overflow:hidden;}
+h1{margin:8px 0 12px;font-size:1.4rem;}
+.big-btn{display:block; width:100%; padding:12px; margin:8px 0; background:#222; border:2px solid var(--accent); color:var(--accent); border-radius:10px; font-size:1rem; cursor:pointer; transition:transform .08s,box-shadow .12s,background .08s;}
+.big-btn:active{transform:translateY(1px) scale(.998);}
+.big-btn:hover{box-shadow:0 0 10px rgba(0,255,0,0.12); background:#2a2a2a;}
+#bars{margin:12px auto; width:100%;}
+.barWrap{margin:8px 0;text-align:left;}
+.barLabel{font-size:12px;color:var(--muted);margin-bottom:6px;}
+.bar{width:100%;height:14px;border-radius:8px;background:#222;border:1px solid var(--accent);overflow:hidden}
+.fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--hot));transition:width .25s linear;}
+#controls{display:flex;gap:8px;margin-top:10px;}
+#controls button{flex:1;padding:8px;font-size:14px;}
+.side {width:320px; max-width:95%; display:flex; flex-direction:column; gap:12px;}
+.panel{padding:12px;border-radius:var(--radius);background:var(--panel);border:2px solid #222;color:var(--accent); box-shadow:0 0 10px rgba(0,0,0,0.6);}
+.panel h2{margin:0 0 8px;font-size:1rem;color:var(--hot)}
+#shop button{display:block;width:100%;text-align:left;margin:6px 0;padding:10px;border-radius:8px;background:#111;border:1px solid #222;color:var(--accent);cursor:pointer;}
+#shop button .cost{float:right;color:var(--muted);font-size:12px;}
+.tooltip {position:relative; display:inline-block;}
+.tooltip .tip {visibility:hidden;opacity:0;transition:opacity .15s; position:absolute; left:50%; transform:translateX(-50%); bottom:110%; background:#0b0b0b;color:#fff;padding:8px;border-radius:8px; width:200px;border:1px solid #333;font-size:12px;z-index:999;}
+.tooltip:focus .tip, .tooltip:hover .tip, .tooltip[data-show="true"] .tip { visibility:visible;opacity:1; }
+#toast{position:fixed;right:18px;bottom:18px;background:linear-gradient(180deg,#0f0,#0cc);color:#001;padding:10px 14px;border-radius:12px;border:2px solid #0a0;font-weight:700;display:none;z-index:9998;}
+.emoji{position:absolute;font-size:20px;pointer-events:none;animation:floatUp 1s linear forwards;}
+@keyframes floatUp{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(-120px) rotate(360deg);opacity:0}}
+.particle{position:absolute;width:6px;height:6px;border-radius:50%;pointer-events:none;animation:fly .6s linear forwards}
+@keyframes fly{0%{transform:translate(0,0);opacity:1}100%{transform:translate(var(--x),var(--y));opacity:0}}
+.comboText{position:absolute;color:var(--hot);font-weight:bold;pointer-events:none;animation:comboFloat .8s ease-out forwards}
+@keyframes comboFloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-40px)}}
+.muted{color:var(--muted);font-size:13px}
+.row{display:flex;gap:8px;align-items:center}
+.stat{font-size:13px;color:var(--hot)}
+.tiny{font-size:12px;color:var(--muted)}
+.pill{background:#0a0a0a;padding:6px 8px;border-radius:8px;border:1px solid #222}
+.divider{height:1px;background:#222;margin:10px 0}
 
-  #bars{margin:12px auto; width:100%;}
-  .barWrap{margin:8px 0;text-align:left;}
-  .barLabel{font-size:12px;color:var(--muted);margin-bottom:6px;}
-  .bar{width:100%;height:14px;border-radius:8px;background:#222;border:1px solid var(--accent);overflow:hidden}
-  .fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--hot));transition:width .25s linear;}
+/* Hack menu fixed */
+#hackMenu{
+  display:none;
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  background:#111;
+  border:2px solid var(--pink);
+  color:var(--pink);
+  padding:18px;
+  border-radius:12px;
+  z-index:9999;
+  pointer-events:auto;
+  min-width:220px;
+}
+#hackMenu button{
+  margin:6px 0;
+  background:#222;
+  border:1px solid var(--pink);
+  color:var(--pink);
+  padding:8px;
+  border-radius:8px;
+  cursor:pointer;
+  width:100%;
+}
+#hackMenu button:hover{ background:#2a002a; }
 
-  #controls{display:flex;gap:8px;margin-top:10px;}
-  #controls button{flex:1;padding:8px;font-size:14px;}
-
-  /* Right-side panels */
-  .side {
-    width:320px;
-    max-width:95%;
-    display:flex;
-    flex-direction:column;
-    gap:12px;
-  }
-  .panel{
-    padding:12px;border-radius:var(--radius);background:var(--panel);border:2px solid #222;color:var(--accent);
-    box-shadow:0 0 10px rgba(0,0,0,0.6);
-  }
-  .panel h2{margin:0 0 8px;font-size:1rem;color:var(--hot)}
-  #shop button{display:block;width:100%;text-align:left;margin:6px 0;padding:10px;border-radius:8px;background:#111;border:1px solid #222;color:var(--accent);cursor:pointer;}
-  #shop button .cost{float:right;color:var(--muted);font-size:12px;}
-  .tooltip {
-    position:relative; display:inline-block;
-  }
-  .tooltip .tip {
-    visibility:hidden;opacity:0;transition:opacity .15s; position:absolute; left:50%; transform:translateX(-50%); bottom:110%;
-    background:#0b0b0b;color:#fff;padding:8px;border-radius:8px; width:200px;border:1px solid #333;font-size:12px;z-index:999;
-  }
-  .tooltip:focus .tip, .tooltip:hover .tip, .tooltip[data-show="true"] .tip { visibility:visible;opacity:1; }
-
-  /* achievement toast */
-  #toast{
-    position:fixed;right:18px;bottom:18px;background:linear-gradient(180deg,#0f0,#0cc);color:#001;padding:10px 14px;border-radius:12px;border:2px solid #0a0;font-weight:700;display:none;z-index:9998;
-  }
-
-  /* Hack menu */
-  #hackMenu{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#111;border:2px solid var(--pink);color:var(--pink);padding:18px;border-radius:12px;z-index:9999}
-  #hackMenu button{margin:6px;background:#222;border:1px solid var(--pink);color:var(--pink);padding:8px;border-radius:8px}
-
-  /* responsive mobile tweaks */
-  @media (max-width:900px){
-    .app{padding:12px;}
-    .side{width:100%}
-    #gameContainer{width:100%}
-  }
-
-  /* limited emoji/particle style */
-  .emoji{position:absolute;font-size:20px;pointer-events:none;animation:floatUp 1s linear forwards;}
-  @keyframes floatUp{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(-120px) rotate(360deg);opacity:0}}
-  .particle{position:absolute;width:6px;height:6px;border-radius:50%;pointer-events:none;animation:fly .6s linear forwards}
-  @keyframes fly{0%{transform:translate(0,0);opacity:1}100%{transform:translate(var(--x),var(--y));opacity:0}}
-  .comboText{position:absolute;color:var(--hot);font-weight:bold;pointer-events:none;animation:comboFloat .8s ease-out forwards}
-  @keyframes comboFloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-40px)}}
-
-  /* small helpers */
-  .muted{color:var(--muted);font-size:13px}
-  .row{display:flex;gap:8px;align-items:center}
-  .stat{font-size:13px;color:var(--hot)}
-  .tiny{font-size:12px;color:var(--muted)}
-  .pill{background:#0a0a0a;padding:6px 8px;border-radius:8px;border:1px solid #222}
-  .divider{height:1px;background:#222;margin:10px 0}
+/* responsive */
+@media (max-width:900px){
+  .app{padding:12px;}
+  .side{width:100%}
+  #gameContainer{width:100%}
+}
 </style>
 </head>
-
 <body>
-<div class="app">
 
-  <!-- Game Container -->
+<div class="app">
   <div id="gameContainer" class="panel">
     <h1>Points: <span id="points">0</span></h1>
-
-    <button id="clickBtn" class="big-btn" aria-label="Click to earn points">CLICK!</button>
+    <button id="clickBtn" class="big-btn">CLICK!</button>
     <button id="megaClickBtn" class="big-btn" style="display:none;background:#330033;border-color:var(--pink);color:var(--pink)">MEGA CLICK 💥</button>
 
     <div id="bars">
-      <div class="barWrap">
-        <div class="barLabel">Prestige Progress</div>
-        <div class="bar"><div id="prestigeFill" class="fill"></div></div>
-      </div>
-      <div class="barWrap">
-        <div class="barLabel">Combo</div>
-        <div class="bar"><div id="comboFill" class="fill"></div></div>
-      </div>
+      <div class="barWrap"><div class="barLabel">Prestige Progress</div><div class="bar"><div id="prestigeFill" class="fill"></div></div></div>
+      <div class="barWrap"><div class="barLabel">Combo</div><div class="bar"><div id="comboFill" class="fill"></div></div></div>
     </div>
 
     <div id="controls" class="muted">
@@ -142,26 +102,13 @@
       <button id="loadBtn" class="pill tiny">Load</button>
       <button id="resetBtn" class="pill tiny">Reset</button>
     </div>
-
     <div style="margin-top:12px" class="tiny">Tip: press letter sequence G R I F F I N to open secret menu.</div>
   </div>
 
-  <!-- Right side: Shop / Stats / Achievements -->
   <div class="side">
-    <div class="panel" id="shopPanel">
-      <h2>Shop</h2>
-      <div id="shop"></div>
-    </div>
-
-    <div class="panel" id="prestigePanel">
-      <h2>Prestige</h2>
-      <div class="tiny">Prestige Points: <span id="prestigePoints">0</span></div>
-      <div class="divider"></div>
-      <div id="prestigeUpgrades"></div>
-    </div>
-
-    <div class="panel" id="statsPanel">
-      <h2>Stats</h2>
+    <div class="panel" id="shopPanel"><h2>Shop</h2><div id="shop"></div></div>
+    <div class="panel" id="prestigePanel"><h2>Prestige</h2><div class="tiny">Prestige Points: <span id="prestigePoints">0</span></div><div class="divider"></div><div id="prestigeUpgrades"></div></div>
+    <div class="panel" id="statsPanel"><h2>Stats</h2>
       <div class="row"><div class="stat">Lifetime Clicks:</div><div id="lifetimeClicks" class="muted" style="margin-left:auto">0</div></div>
       <div class="row"><div class="stat">Total Points Earned:</div><div id="lifetimePoints" class="muted" style="margin-left:auto">0</div></div>
       <div class="row"><div class="stat">Prestiges:</div><div id="prestigeCount" class="muted" style="margin-left:auto">0</div></div>
@@ -171,18 +118,13 @@
         <button id="musicToggle" class="pill tiny">Music: OFF</button>
       </div>
     </div>
-
-    <div class="panel" id="achPanel">
-      <h2>Achievements</h2>
-      <div id="achievementsList" class="tiny">No achievements yet.</div>
-    </div>
+    <div class="panel" id="achPanel"><h2>Achievements</h2><div id="achievementsList" class="tiny">No achievements yet.</div></div>
   </div>
 </div>
 
-<!-- Achievement toast -->
 <div id="toast"></div>
 
-<!-- Hidden hack menu kept intentionally -->
+<!-- FIXED Griffin God Menu -->
 <div id="hackMenu" aria-hidden="true">
   <h2>Griffin God Mode Menu</h2>
   <button onclick="turnEmojisToLizards()">ALL LIZARDS MODE</button>
@@ -194,11 +136,12 @@
   <button onclick="points = prestigeGoal; prestige();">INSTANT PRESTIGE</button>
   <button onclick="startChaosOverload()">CHAOS OVERLOAD</button>
   <button onclick="shopItems.forEach(i=>{i.amount=999; i.effect();}); renderShop();">UNLOCK ALL UPGRADES</button>
-  <br><button onclick="document.getElementById('hackMenu').style.display='none'">Close Menu</button>
+  <br>
+  <button onclick="closeHackMenu()">Close Menu</button>
 </div>
 
 <script>
-/* ============================================================
+//* ============================================================
    Chaos-Clicker v1.1.0 — single-file rewrite
    Goals implemented: prestige shop, achievements, autosave/load,
    stats, mobile UI improvements, tooltips, sound/music toggle.
@@ -743,22 +686,20 @@ startup();
    --------------------------- */
 setInterval(checkAchievements, 2000);
 
-/* ---------------------------
-   Input: Konami-like Griffin code opens hack menu
-   --------------------------- */
+
+// Hack menu toggle (keyboard Griffin sequence)
 const griffinCode = ['g','r','i','f','f','i','n'];
 let griffinInput = [];
-document.addEventListener('keydown', (e)=>{
+document.addEventListener('keydown', e=>{
   griffinInput.push(e.key.toLowerCase());
   if(griffinInput.slice(-griffinCode.length).join('') === griffinCode.join('')){
-    document.getElementById('hackMenu').style.display='block';
+    openHackMenu();
     griffinInput = [];
   }
 });
+function openHackMenu(){ const menu=document.getElementById('hackMenu'); menu.style.display='block'; menu.removeAttribute('aria-hidden'); }
+function closeHackMenu(){ const menu=document.getElementById('hackMenu'); menu.style.display='none'; menu.setAttribute('aria-hidden','true'); }
 
-/* ---------------------------
-   Hack helpers (kept from original)
-   --------------------------- */
 function turnEmojisToLizards() {
   document.querySelectorAll('.emoji').forEach(e => e.textContent = '🦎');
   emojiSet = ['🦎'];
@@ -777,7 +718,6 @@ function turnEmojisToLizards() {
   };
   alert('All emojis are now LIZARDS 🦎');
 }
-
 function startChaosOverload(){
   const id = setInterval(()=>{
     spawnParticles(Math.random()*window.innerWidth, Math.random()*window.innerHeight, 30);
@@ -824,6 +764,9 @@ window.resetGame = resetGame;
    - Add a simple feedback form endpoint or use GitHub Issues to collect user comments.
    =========================== */
 
+
 </script>
 </body>
 </html>
+
+
